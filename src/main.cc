@@ -246,6 +246,11 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
     return;
 }
 
+void particleStats(Orbit& orbit, Doub dr, Doub energy, int nparts, int maxiter)
+{
+	return;
+}
+
 
 //-----------------------------------------------------------------
 //------------------------- Housekeeping --------------------------
@@ -382,7 +387,7 @@ int main(int argc, const char** argv)
     {
     	// TODO implement this
     	std::cerr << "Let's push some particles!" << std::endl;
-    	double dr, energy, er, ephi, ez;
+    	double dr, energy, er(0), ephi(0), ez(0);
 
     	if (args.size() != 5){
     		std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
@@ -390,12 +395,17 @@ int main(int argc, const char** argv)
     		std::cin >> dr;
     		std::cerr << "Energy of the particle:" << std::endl;
     		std::cin >> energy;
-    		std::cerr << "Fraction of energy in r direction:" << std::endl;
-    		std::cin >> er;
-    		std::cerr << "Fraction of energy in phi direction:" << std::endl;
-    		std::cin >> ephi;
-    		std::cerr << "Fraction of energy in z direction:" << std::endl;
-    		std::cin >> ez;
+    		
+
+    		while ( abs(er + ephi + ez - 1) > 1E-16){
+    			std::cerr << "Energy fractions need to add up to 1! " << std::endl;
+    			std::cerr << "Fraction of energy in r direction:" << std::endl;
+	    		std::cin >> er;
+	    		std::cerr << "Fraction of energy in phi direction:" << std::endl;
+	    		std::cin >> ephi;
+	    		std::cerr << "Fraction of energy in z direction:" << std::endl;
+	    		std::cin >> ez;
+    		}
     		std::cerr << "All set." << std::endl;
 
     	} else {
@@ -423,7 +433,34 @@ int main(int argc, const char** argv)
     }
     else if (controller == std::string("-stat"))
     {
+    	double dr, energy;
+    	int nparts, maxiter;
     	// TODO implement this
+    	if (args.size() == 4){
+    		dr = stod(args.front());
+    		args.pop_front();
+    		energy = stod(args.front());
+    		args.pop_front();
+    		nparts = stod(args.front());
+    		args.pop_front();
+    		maxiter = stod(args.front());
+    		args.pop_front();
+    	} else {
+    		std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
+    		std::cerr << "Give a starting radial position, dr from limiter:" << std::endl;
+    		std::cin >> dr;
+    		std::cerr << "Energy of the particle:" << std::endl;
+    		std::cin >> energy;
+    		std::cerr << "Number of particles to push: " << std::endl;
+    		std::cin >> nparts;
+    		std::cerr << "Maximum iteration for each particle: " << std::endl;
+    		std::cin >> maxiter;
+    		std::cerr << "All set." << std::endl;
+    	}
+    	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
+
+    	particleStats(orbit, dr, energy, nparts, maxiter);
+
     }
     else if (controller == std::string("-h")){
     	help();
