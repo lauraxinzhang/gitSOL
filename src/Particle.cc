@@ -83,6 +83,11 @@ void Particle::lost()
 	return;
 }
 
+bool Particle::isLost()
+{
+	return lost_;
+}
+
 double Particle::mu(Vector& BField) const
 {
 	Vector vperp = vel().perp(BField);

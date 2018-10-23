@@ -69,6 +69,11 @@ class Particle
         void lost();
 
         /**
+         * \brief Return whether the particle is lost
+         */
+        bool isLost();
+
+        /**
          * \brief Calculate magnetic moment at the given B field
          * \note  B Field value must be the field at current position
          */

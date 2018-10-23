@@ -1,41 +1,26 @@
 // Programmer class includes
 #include "Orbit.h"
+#include <omp.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+#include <random>
+#include <numeric> //std::accumulate
+#include <algorithm>
+#include <iterator>
+
+#define BMAGAXIS  2000                    // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
+#define NPERORBIT 20                      // steps per Lamor orbit
+
+
 
 
 //-----------------------------------------------------------------
 //------------------------- Controllers  --------------------------
 //-----------------------------------------------------------------
 
-
-
 void printData(Orbit& orbit)
 {
 	/*
-	Vector Bstart( orbit.rleft_+ orbit.rdim_/2 + 0.1, 0, orbit.zmid_  - orbit.zdim_/2 + 0.2);
-	Vector dv(0.05, 0, 0);
-
-	
-	ofstream rBList;
-    rBList.open ("rBList.bout");
-
-    ofstream zBList;
-    zBList.open ("zBList.bout");
-
-    ofstream phiBList;
-    phiBList.open("phiBList.bout");
-
-	for (int i = 0; i < 8; i++){
-		Vector Bnow = Bstart + dv * i;
-		// std::cerr << Bnow << std::endl;
-	    orbit.fieldLines(rBList, zBList, phiBList, Bnow, 0.01, 1000);
-	    // orbit.fieldLines(rBList, zBList, phiBList, Bnow, -0.01, 1000);
-	}
-
-	rBList.close();
-	zBList.close();
-	phiBList.close();
-	*/
-
 	ofstream modB;
 	modB.open("./output/modB.out");
 
@@ -53,14 +38,17 @@ void printData(Orbit& orbit)
 	orbit.writeMirrorRatio(RRout);
 	RRout.close();
 
+	/*
 	MatDoub pass(orbit.nw_, orbit.nh_);
 
+	*/
 	ofstream passout1; // LOLOLOLOL
-	passout1.open("./output/pass02.out");
-	// input Ti, Te here. keep Te 0.
-	orbit.writePastukhov(0.2, 1, pass, passout1); // pass modified
+	passout1.open("./output/passTest.out");
+	// input Ti, Te here. keep Te 1.
+	orbit.writePastukhov(0.2, 1, passout1); // pass modified
 	passout1.close();
 
+	/*
 	ofstream midplane1;
 	midplane1.open("./output/midplane02.out");
 	orbit.midPlanePhi(0.2, 1, pass, midplane1);
@@ -70,7 +58,7 @@ void printData(Orbit& orbit)
 
 	ofstream passout2; // LOLOLOLOL
 	passout2.open("./output/pass1.out");
-	// input Ti, Te here. keep Te 0.
+	// input Ti, Te here. keep Te 1.
 	orbit.writePastukhov(1, 1, pass, passout2); // pass modified
 	passout2.close();
 
@@ -82,7 +70,7 @@ void printData(Orbit& orbit)
 	// MatDoub pass(orbit.nw_, orbit.nh_);
 	ofstream passout3; // LOLOLOLOL
 	passout3.open("./output/pass2.out");
-	// input Ti, Te here. keep Te 0.
+	// input Ti, Te here. keep Te 1.
 	orbit.writePastukhov(2, 1, pass, passout3);
 	passout3.close();
 
@@ -110,8 +98,10 @@ void printData(Orbit& orbit)
 	orbit.eField(2, 1, start, 0.005, 15000, eFieldLine2);
 	orbit.eField(1, 1, start, 0.005, 15000, eFieldLine1);
 	orbit.eField(0.2, 1, start, 0.005, 15000, eFieldLine02);
+	*/
 }
 
+/** TODO: make this a member function */
 void temperature(Doub Ti_start, Doub dT, int iter, Doub R, Orbit& orbit)
 {
 	ofstream temp;
@@ -122,12 +112,7 @@ void temperature(Doub Ti_start, Doub dT, int iter, Doub R, Orbit& orbit)
 	Doub TiNow = Ti_start;
 	while (i <= iter){
 		Doub phi   = orbit.pastukhov(TiNow, 1, R);
-
-		// tList[i]   = TiNow;
-		// phiList[i] = phi;
-
 		temp << TiNow << ',' << phi << std::endl;
-
 		i++;
 		TiNow += dT;
 	}
@@ -136,12 +121,11 @@ void temperature(Doub Ti_start, Doub dT, int iter, Doub R, Orbit& orbit)
 	return;
 }
 
+/** TODO: make this a member function */
 void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
 {
-
-	// TODO: Dynamically create file names.
 	std::string prefix  = "./output/";
-	std:: string suffix = "_E_" + std::to_string(energy) + "_dr_" + std::to_string(dr) + ".out";
+	std::string suffix = "_E_" + std::to_string(energy) + "_dr_" + std::to_string(dr) + ".out";
 
 	std::string coordRZ = prefix + "coordRZ" + suffix;
 	std::string coordXYZ = prefix + "coordXYZ" + suffix;
@@ -150,22 +134,18 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
 
 
 	ofstream coordinatesRZ;
-	// coordinatesRZ.open("./output/coordinatesRZ.out");	
 	coordinatesRZ.open(coordRZ);
 	coordinatesRZ << std::setprecision(10);
 
 	ofstream coordinatesXYZ;
-	// coordinatesXYZ.open("./output/coordinatesXYZ.out");	
 	coordinatesXYZ.open(coordXYZ);
 	coordinatesXYZ << std::setprecision(10);
 
 	ofstream totalEnergy;
-	// totalEnergy.open("./output/totalEnergy.out");
 	totalEnergy.open(totenergy);
 	totalEnergy << std::setprecision(16);
 
 	ofstream magMoment;
-	// magMoment.open("./output/magMoment.out");
 	magMoment.open(mag);
 	magMoment << std::setprecision(10);
 
@@ -173,21 +153,12 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
 	Vector posi(orbit.rrlmtr_ - dr, 0, orbit.zmid_);
 
 	//initialize an hydrogen ion with energy and direction input by user;
-
 	Doub vr = sqrt(energy * er * EVTOJOULE / MI); // thermal velocity
 	Doub vphi = sqrt(energy * ephi * EVTOJOULE / MI);
 	Doub vz = sqrt(energy * ez * EVTOJOULE / MI);
 
-	// std::cerr << vv << std::endl;
     Vector veli(vr, vphi, vz);
-
-
     Particle part(posi, veli, 0);
-
-    // ofstream init;
-    // init.open(prefix + "init" + suffix);
-    // init << veli << std::endl << posi << std::endl;
-    // init.close();
 
     // A default electric field of 0;
     Vector EField(0, 0, 0);
@@ -198,19 +169,9 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
     for (step; step < 1000000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
-
-    	// if (part.pos().x() < 10E-6){
-    	// 	break;
-    	// }
     	Vector BNow = orbit.getB(posNow);
 
-    	// std::cerr << "BField:" << BNow << std::endl;
     	part.moveCyl(EField, BNow, dt);
-    	// part.move(EField, BNow, dt);
-
-    	// Doub rNow = part.pos().x();
-    	// Doub phiNow = part.pos().y();
-    	// Doub zNow = part.pos().z();
 
     	Doub xNow = part.pos().x();
     	Doub yNow = part.pos().y();
@@ -225,7 +186,6 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
     	}
 
     	if (step % 500 == 0){ // output every 500 steps
-	    	// Vector vperp = part.vel()
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
@@ -246,11 +206,157 @@ void particlePush(Orbit& orbit, Doub dr, Doub energy, Doub er, Doub ephi, Doub e
     return;
 }
 
-void particleStats(Orbit& orbit, Doub dr, Doub energy, int nparts, int maxiter)
+/** TODO: make this a member function. No reason why this isn't a member function */
+/**
+ * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 
+ *                initial velocities
+ * \return        Sum of all velocities for all particles lost to the limiter
+ * \param orbit   Input Orbit object, carries magnetic geometry and more
+ * \param dr      Radial location for particle loading
+ * \param energy  Temperature of test particles (in eV), to initialize Maxwellian dist.
+ * \param spec    Species of the particle. 0 for H, 1 for e.
+ * \param nparts  Number of particles
+ * \param maxiter Maximum number of iterations for each particle.
+ * \param write   Whether to write list of initial and lost velocities to file, default to false.
+ */
+Doub particleStats(Orbit& orbit, Doub dr, Doub energy, bool spec, int nparts, int maxiter, bool write = false)
 {
-	return;
-}
+	std::list<Vector> initVel;
+	std::list<Vector> finlVel;
 
+	std::list<Doub> paraVel;
+
+	std::cerr<< "mirror ratio: " << orbit.getMirrorRatio(orbit.rrlmtr_ - dr, orbit.zmid_) << std::endl;
+
+	Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
+	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
+
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
+	Doub TLamor = 1/fLamor;
+	Doub dt = TLamor / NPERORBIT;
+
+	std::default_random_engine generator(int(time(NULL)));
+
+    std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
+
+	#pragma omp parallel
+	{
+		// srand( int(time(NULL)) ^ omp_get_thread_num() ); // seed each thread independently
+		generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
+		// std::cerr<< "num of thread:" << omp_get_thread_num() << std::endl;
+
+		int er, ephi, ez, diff;
+		Doub vr, vphi, vz, xNow, yNow, zNow, rNow, phiNow;
+		Vector veli, posi, posNow, BNow, vPara, vPerp, vGC;
+		Particle part;
+
+		part.setSpec(spec);
+
+		// A default electric field of 0;
+	    Vector EField(0, 0, 0);
+
+	    std::list<Vector> initVel_private; // A list of (vpara, vperp)
+	    std::list<Vector> finlVel_private;
+	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
+
+	    // std::cerr << "number of threads: " << omp_get_num_threads() << std::endl;
+
+		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, posi, xNow, yNow, zNow, rNow, phiNow, diff, posNow, BNow, vGC)
+		
+			for (int i=0; i < nparts; ++i ){
+
+				// initialize particle position
+				posi = Vector(orbit.rrlmtr_ - dr, 0, orbit.zmid_);
+
+				//initialize an hydrogen ion with energy input by user, in random directions;
+				vr = distribution(generator); // generate 3 normal distributed velocities.
+				vphi =  distribution(generator);
+				vz = distribution(generator);
+
+			    veli = Vector(vr, vphi, vz);
+
+			    BNow = orbit.getB(posi);
+			    vPara = veli.parallel(BNow);
+			    vPerp = veli.perp(BNow);
+			    vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
+
+			    initVel_private.push_back(vGC); 
+
+			    part.setPos(posi);
+			    part.setVel(veli);
+
+			    for (int step = 0; step < maxiter; ++step){ 
+					posNow = part.pos();
+			    	BNow = orbit.getB(posNow);
+
+			    	// std::cerr << "BField:" << BNow << std::endl;
+			    	part.moveCyl(EField, BNow, dt);
+
+			    	xNow = part.pos().x();
+			    	yNow = part.pos().y();
+			    	zNow = part.pos().z();
+
+			    	rNow = sqrt( xNow * xNow + yNow * yNow );
+			    	phiNow = atan(yNow / xNow);
+
+			    	if (orbit.isLimiter(rNow, zNow)){
+			    		part.lost();
+					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
+			    		// std::cerr << "particle lost to limiter after " << step << " iterations." << std::endl;
+			    		
+			    		// collect the final paralell velocity here
+					    vPara = part.vel().parallel(BNow);
+					    paraVel_private.push_back(vPara.mod());
+			    		break;
+			    	}
+			    }
+			    /** Apparently as soon as you get out of the for loop things are scrambled. This push_back has
+			        to be inside the serial for loop */
+			 //    if (part.isLost()){
+				//     finlVel_private.push_back(veli); // a list of initial velocities that are not lost
+				// }
+
+
+			}
+		#pragma omp critical
+			// collect everything from all threads back into the main structure
+			initVel.insert(initVel.end(), initVel_private.begin(), initVel_private.end());
+			finlVel.insert(finlVel.end(), finlVel_private.begin(), finlVel_private.end());
+			paraVel.insert(paraVel.end(), paraVel_private.begin(), paraVel_private.end());
+
+	}
+
+	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
+	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
+
+
+	std::string suffix = "_E_" + std::to_string(energy).substr(0, 5) + "_dr_" + std::to_string(dr).substr(0, 4) + ".out";
+
+	// Doub sumVel = 
+	if (write){
+		ofstream initial;
+		initial.open("output/initial" + suffix);
+		ofstream final;
+		final.open("output/final" + suffix);
+		while (!initVel.empty()){
+			initial << initVel.front() << std::endl;
+			initVel.pop_front();
+		}	
+
+		while (!finlVel.empty()){
+			final << finlVel.front() << std::endl;
+			finlVel.pop_front();
+		}
+	} 
+
+	Doub gammaOut = 0;
+	while(!paraVel.empty()){
+		gammaOut += paraVel.front();
+		paraVel.pop_front();
+	}
+	
+	return gammaOut;
+}
 
 //-----------------------------------------------------------------
 //------------------------- Housekeeping --------------------------
@@ -310,11 +416,15 @@ void help()
 	return;
 }
 
+//-----------------------------------------------------------------
+//------------ Initialization and User Interface  -----------------
+//-----------------------------------------------------------------
 
 int main(int argc, const char** argv)
 {
-	std::cerr << "Hello World" << std::endl << std::endl;;
-	std::cout << std::setprecision(10);
+	std::cerr << "Hello World" << std::endl << std::endl;
+	// std::cout << std::setprecision(10);
+	std::cout << std::scientific;
 
 	std::cerr << "Magnetic geometry initialization: " << std::endl;
 	// read from uniform grid data file.
@@ -380,7 +490,7 @@ int main(int argc, const char** argv)
     {
     	// TODO implement command line input to Ti Te, and starting point on limiter
     	printData(orbit);
-    	temperature(0.1, 0.01, 200, 3,orbit);
+    	// temperature(0.1, 0.01, 200, 3,orbit);
 
     }
     else if (controller == std::string("-part"))
@@ -434,16 +544,22 @@ int main(int argc, const char** argv)
     else if (controller == std::string("-stat"))
     {
     	double dr, energy;
+    	bool spec;
     	int nparts, maxiter;
+    	bool write;
     	// TODO implement this
-    	if (args.size() == 4){
+    	if (args.size() == 6){
     		dr = stod(args.front());
     		args.pop_front();
     		energy = stod(args.front());
     		args.pop_front();
+    		spec = stoi(args.front());
+    		args.pop_front();
     		nparts = stod(args.front());
     		args.pop_front();
     		maxiter = stod(args.front());
+    		args.pop_front();
+    		write = stoi(args.front());
     		args.pop_front();
     	} else {
     		std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
@@ -451,15 +567,21 @@ int main(int argc, const char** argv)
     		std::cin >> dr;
     		std::cerr << "Energy of the particle:" << std::endl;
     		std::cin >> energy;
+    		std::cerr << "Species of the particle, 1 for electron, 0 for hydrogen:" << std::endl;
+    		std::cin >> spec;
     		std::cerr << "Number of particles to push: " << std::endl;
     		std::cin >> nparts;
     		std::cerr << "Maximum iteration for each particle: " << std::endl;
     		std::cin >> maxiter;
+    		std::cerr << "Write loss cone to file? 1 for yes, 0 for no." << std::endl;
+    		std::cin >> write;
     		std::cerr << "All set." << std::endl;
     	}
     	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
 
-    	particleStats(orbit, dr, energy, nparts, maxiter);
+    	Doub gammaOut = particleStats(orbit, dr, energy, spec, nparts, maxiter, write);
+
+    	std::cout << '(' << nparts << ',' << gammaOut << ")," << std::endl;
 
     }
     else if (controller == std::string("-h")){
@@ -475,448 +597,4 @@ int main(int argc, const char** argv)
 }
 
 
-//----------------------------------------------------------------------
-//------------------------ TESTS ---------------------------------------
-//----------------------------------------------------------------------
-
-/**
- * \brief Tests for base functions
- *
- */
-void Orbit::test()
-{
-	std::cerr << "Entering tests:" << std::endl;
-	bool testVector   = true;
-	bool testPart     = true;
-	bool testInterp   = true;
-
-	// Flags for which tests to run
-	// Vector Tests:
-	bool vecInitAndAssign = true;
-	bool plusAndMinus     = true;
-	bool multAndDiv       = true;
-	bool dotAndMod        = true;
-	bool cross            = true;
-
-	bool normalize        = true;
-	bool parallelAndPerp  = true;
-
-	// Particle Tests:
-	bool partInitAndAssign = true;
-	bool mover             = true;
-	bool testMu                = true;
-
-	// Interpolation Tests:
-	if (testInterp){
-		std::cerr << " - Testing Linear Interpolations" << std::endl;
-		Int n = 10;
-		VecDoub xx(n), yy(n);
-		for (int i = 0; i < n ; ++i){
-			xx[i] = i;
-			yy[i] = 2.0 * i + 1;
-			// std::cout << xx[i] << ',' << yy[i] << std::endl;
-		}
-
-		Linear_interp line(xx, yy);
-
-		Doub x, y;
-		x = 5.5;
-		y = line.interp(x);
-
-		bool result = (y == 2*x + 1);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-
-
-	// Vector Tests:
-	if (testVector && vecInitAndAssign){
-
-		std::cerr << " - Testing Vector init, assignment, and '==' operators" << std::endl;
-
-		Vector v(2, 3, 5);
-		Vector v2 = v;
-		Vector v3;
-		Vector v4(0,0,0);
-
-		if (v == v2 && v3 == v4){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testVector && plusAndMinus){
-		std::cerr << " - Testing '+' and '-' operators" << std::endl;
-		Vector v(2, 3, 5);
-		Vector v2(1, 6, 0);
-
-		Vector vPlus(3, 9, 5);
-		Vector vMinus(1, -3, 5);
-
-		if (v + v2 == vPlus && v - v2 == vMinus){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << (v + v2) << "should be" << vPlus << std::endl;
-			std::cerr << (v - v2) << "should be" << vMinus << std::endl;
-
-		}
-
-	}
-
-	if (testVector && multAndDiv){
-		std::cerr << " - Testing '*' and '/' operators" << std::endl;
-
-		Vector v(2, 3, 5);
-		double mult  = 0.7;
-		double denom = 0.5;
-
-		Vector vMult(2*0.7, 3*0.7, 5*0.7);
-		Vector vDiv(2/0.5, 3/0.5, 5/0.5);
-
-		if (v * mult == vMult && v / denom == vDiv){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << (v * mult) << "should be" << vMult << std::endl;
-			std::cerr << (v / denom) << "should be" << vDiv << std::endl;
-
-		}
-
-	}
-
-	if (testVector && dotAndMod){
-		std::cerr << " - Testing dot and mod()" << std::endl;
-
-		Vector vl(2, 7, -8);
-		Vector vr(3, 9, 1);
-
-		double vDot = 2*3 + 7*9 + (-8)*1;
-		double vlMod = sqrt(4 + 49 + 64);
-
-		bool result = (vl.dot(vr)==vDot) && (vl.mod() == vlMod);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	
-	}
-
-	if (testVector && cross){
-		std::cerr << " - Testing cross product" << std::endl;
-
-		Vector vl(2, 7, -8);
-		Vector vr(3, 9, 1);
-
-		Vector vCross(79, -26, -3);
-		bool result = (vl.cross(vr) == vCross);
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-	
-	if (testVector && normalize){
-		std::cerr << " - Testing normalization" << std::endl;
-
-		Vector vv(4, 3, 0);
-		Vector vn(0.8, 0.6, 0);
-
-		bool result = (vv.normalize() == vn);
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testVector && parallelAndPerp){
-		std::cerr << " - Testing parallel and perp" << std::endl;
-		Vector vv(4, 3, 0);
-		Vector B(10, 0, 0);
-
-		Vector vpara(4, 0, 0);
-		Vector vperp(0, 3, 0);
-
-		bool para = (vv.parallel(B) == vpara);
-		bool perp = (vv.perp(B) == vperp);
-		bool result = para && perp;
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << "para calculated: " << vv.parallel(B) <<", should be: " << vpara << std::endl;
-			std::cerr << "perp calculated: " << vv.perp(B) <<", should be: " << vperp << std::endl;
-		}
-	}
-
-
-	// Particle Tests:
-	if (testPart && partInitAndAssign){
-		std::cerr << " - Testing Particle Init and assign" << std::endl;
-		
-		Vector pos(0,0,0);
-		Vector vel(0,0,0);
-		bool species = true;
-
-		Particle p;
-		Particle p2(pos, vel, species);
-
-		Vector pos2(2,80.7,0.4);
-		Vector vel2(0,8,0);
-		bool spec2 = false;
-
-		Particle p3(pos2, vel2, spec2);
-		Particle p4 = p3;
-
-		Particle p5;
-		p5.setPos(pos2);
-		p5.setVel(vel2);
-		p5.setSpec(spec2);
-
-		bool result = (p == p2)&& (p4 == p3) && (p5 == p3);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testPart && mover){
-		std::cerr << " - Testing Particle mover" << std::endl;
-
-		Vector E(0, 2.0, 0);
-		Vector B(0, 0, 5.0);
-		double dt = 0.1;
-
-		Vector posk(0, 0, 0);
-		Vector velk(2.0, 2.0, 0);
-		Particle part(posk, velk, false);
-
-		part.move(E, B, dt);
-
-		Vector posf(-0.12, -0.19999999, 0.0);
-		Vector velf(-1.2, -1.9999999, 0.0);
-
-		Vector posDiff = part.pos() - posf;
-		Vector velDiff = part.vel() - velf;
-		bool posB = ( posDiff.mod() < 1E-6);
-		bool velB = ( velDiff.mod() < 1E-6);
-		bool result = posB && velB;
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-
-			std::cerr << part.vel() << "v.s." << velf << std::endl;
-
-			std::cerr << part.pos() << "v.s." << posf << std::endl;
-		}
-
-	}
-
-	if (testPart && testMu) {
-		std::cerr << " - Testing Particle magnetic moment" << std::endl;
-
-		Vector B(0.5, 0, 0); // B has mod 0.5.
-		Vector pos(0, 0, 0); // position is not needed.
-		Vector vel(0, 0, 1); // v is entirely perpendicular, has magnitude 1
-
-		Particle part(pos, vel, false);
-		double muCorrect = part.mass();
-
-		bool result = (muCorrect == part.mu(B));
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-
-	}
-
-}
-
-// A constructor for a simple field configuration
-Orbit::Orbit()
-	 :nw_(50), nh_(50), rdim_(2), zdim_(2), rleft_(1), zmid_(1)
-	 // simag_(0),sibry_(0),dsi_(0)
-{
-	// Initialize all private data members
-	// VecDoub * rlim = new VecDoub(1);
-	// VecDoub * zlim = new VecDoub(1); // we don't need these
-
-    VecDoub * rGrid = new VecDoub(nw_);
-    VecDoub * zGrid = new VecDoub(nh_);
-    // VecDoub * siGrid = new VecDoub(1); // we won't need siGrid.
-
-    const Doub zero = 0;
-
-    MatDoub * Br   = new MatDoub(nw_, nh_, zero); // Br and Bz should be filled with 0s by default
-	MatDoub * Bz   = new MatDoub(nw_, nh_, zero);
-	MatDoub * Btor = new MatDoub(nw_, nh_);
-
-	// dummy declaration to avoid memory issues.
-	MatDoub * psiRZ = new MatDoub(1, 1);
-	psiRZ_ = psiRZ;
-	MatDoub * pRZ   = new MatDoub(1, 1);
-	pRZ_   = pRZ;
-
-	VecDoub * rLimit = new VecDoub(1);
-	VecDoub * zLimit = new VecDoub(1);
-
-	rLimit_ = rLimit;
-	zLimit_ = zLimit;
-
-
-	MatDoub * Bmod = new MatDoub(nw_, nh_);
-	Bmod_ = Bmod; // Temperary
-
-	// Fill in values for rGrid and zGrid
-	for (int i = 0; i < nw_; ++i){     // row index
-    	(*rGrid)[i] = rleft_ + i * (rdim_/nw_);
-    }
-
-    for (int j = 0; j < nh_; ++j){ // column index
-		(*zGrid)[j] = (zmid_ - zdim_/2.0) + j * (zdim_/nh_);
-	}
-
-    rGrid_ = rGrid;
-    zGrid_ = zGrid;
-
-    Doub bMax = 0.7;
-
-    // // Fill Btor with a simple 1/r dependence w/ maximum 0.2 Tesla.
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Btor)[i][j] = bMax/r;
-    // 	}
-    // }
-
-    // // A linearly decreasing field
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Btor)[i][j] = bMax - 0.1 * r;
-    // 	}
-    // } 
-
-    // A constant field
-    for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-    		Doub r = (*rGrid)[i];
-    		(*Btor)[i][j] = bMax;
-    	}
-    } 
-
-    // // A one sided magnetic mirror
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Br)[i][j] = 4 / r;
-    // 	}
-    // }    
-   
-
-    Br_   = Br;
-	Bz_   = Bz;
-	Btor_ = Btor;
-
-	return;
-}
-
-// testing function, only to be used with default constructor.
-void Orbit::emptytest()
-{
-	// run with default constructor for testing
-	// print a particle orbit and magnetic field data to file
-
-    ofstream rList;
-    rList.open ("./output/rList.out");
-
-    ofstream zList;
-    zList.open ("./output/zList.out");
-
-    ofstream phiList;
-    phiList.open("./output/phiList.out");
-
-    Vector posi(0.2, 0, zmid_);
-
-    // Vector veli(20000, 0, 0);
-    // // Vector veli(2E5, 0, 0);
-
-    //initialize an hydrogen ion with Ti = 100 eV;
-	Doub vv = sqrt(2.0 * 400 * EVTOJOULE / MI);
-	std::cerr << vv << std::endl;
-    Vector veli(-vv/10, 0, vv);
-
-    Particle part(posi, veli, false);
-
-    Doub dt = 10E-11;
-    // Vector EField(0, 0.0005, 0.05);
-    Vector EField(0, 0, 0);
-
-
-    for (int step = 0; step < 1000000; ++step)
-    {
-    	Vector posNow = part.pos();
-    	if (part.pos().x() < 10E-6){
-    		std::cerr << "hit the wall" << std::endl;
-    		break;
-    	}
-    	Vector BNow = getB(posNow);
-
-    	// std::cerr << "BField:" << BNow << std::endl;
-    	part.moveCyl(EField, BNow, dt);
-    	// part.move(EField, BNow, dt);
-
-    	Doub rNow = part.pos().x();
-    	Doub phiNow = part.pos().y();
-    	Doub zNow = part.pos().z();
-
-    	rList   << std::setprecision(10) << rNow   << std::endl;
-    	phiList << std::setprecision(10) << phiNow << std::endl;
-    	zList   << std::setprecision(10) << zNow   << std::endl;
-    }
-
-    rList.close();
-    phiList.close();
-    zList.close();
-	
-	/*
-	Vector Bstart( orbit.rleft_, 0, orbit.zmid_ );
-	Vector dv(0.1, 0, 0.1);
-
-
-	ofstream rBList;
-    rBList.open ("./output/rBList.bout");
-
-    ofstream zBList;
-    zBList.open ("./output/zBList.bout");
-
-    ofstream phiBList;
-    phiBList.open("./output/phiBList.bout");
-
-	for (int i = 0; i < 5; i++){
-		Vector Bnow = Bstart + dv * i;
-		// std::cerr << Bnow << std::endl;
-	    orbit.fieldLines(rBList, zBList, phiBList, Bnow, 0.0001, 100000);
-	}
-
-	rBList.close();
-	zBList.close();
-	phiBList.close();
-	*/
-}
 

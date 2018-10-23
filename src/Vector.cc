@@ -178,7 +178,8 @@ void Vector::cyl2Cart(const Vector& pos, Vector& vCart)
 
 std::ostream& operator<<(std::ostream &os, const Vector& v) 
 { 
-	os << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]";
+	// os << "[" << v.x() << ", " << v.y() << ", " << v.z() << "]";
+	os << v.x() << ", " << v.y() << ", " << v.z();
 	return os;
 }
 

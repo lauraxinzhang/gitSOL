@@ -49,6 +49,17 @@
 #define QE 1.60217662E-19                 // elementary charge, in coulomb
 #define EVTOJOULE 1.60217662E-19          // conversion factor
 
+/** Choose which interpolater to use throughout the class */
+// Use these two lines to compile with linear interpolations
+/*
+typedef Linear_interp INTERP1D;
+typedef Bilin_interp  INTERP2D;
+*/
+
+// Use these two lines to compile with Spline interpolations
+typedef Spline_interp    INTERP1D;
+typedef Spline2D_interp  INTERP2D;
+
 /**
  * \brief  
  *
@@ -61,13 +72,6 @@ class Orbit
 		 * \brief A default constructor to produce a simple field for testing
 		 */
 		Orbit();
-
-		// *
-		//  * \brief A constructor to read Eqdsk magnetic field
-		//  * \note  Uses a dummy int to choose constructor
-		 
-		// Orbit(const std::string& path, int flag);
-
 
 		/**
 		 * \brief Another constructor to read uniform grid magnetic field
@@ -88,34 +92,10 @@ class Orbit
 		~Orbit();
 
 		/**
-		 * \brief Get the magnetic field at a position
-		 * \param pos Current position as a Vector class member in cartesian coordinate.
-		 * \return Magnetic field as a 3D Vector in cylindrical coordinate.
+		 * \brief Configure the mirror ratio matrix. Fill in data to RRatio_ private member
+		 * \note  Need to be called when mirror ratio is needed.
 		 */
-		Vector getB(const Vector& pos);
-
-		/**
-		 * \brief Get mod(B) for a position given in the RZ plane
-		 * \param rr R position.
-		 * \param zz Z position.
-		 */
-		Doub getModB(Doub rr, Doub zz);
-
-		/**
-		 * \brief Check whether input rr, zz is on or beyond the limiter
-		 * \note  TODO maybe should only retun *beyond* to allow for the points exactly on limiter?
-		 */
-		bool isLimiter(Doub rr, Doub zz);
-
-		/**
-		 * \brief Returns the vertical coordinate of limiter surface for any r
-		 */
-		Doub getzLimiter(Doub rr);
-
-//--------------------------------------------------------------------------------------------
-//--------------------------- End of Basic Class Implementations -----------------------------
-//---------------------- Start potential calculations and outputting -------------------------
-//--------------------------------------------------------------------------------------------
+		void configMirror();
 
 		/**
 		 * \brief Calculate the mirror ratio on grid points.
@@ -131,28 +111,69 @@ class Orbit
 		void mirrorRatio(MatDoub& ratio);
 
 		/**
+		 * \brief Get the magnetic field at a position
+		 * \param pos Current position as a Vector class member in cartesian coordinate.
+		 * \return Magnetic field as a 3D Vector in cylindrical coordinate.
+		 */
+		Vector getB(const Vector& pos);
+
+		/**
+		 * \brief Get mod(B) for a position given in the RZ plane
+		 * \param rr R position.
+		 * \param zz Z position.
+		 */
+		Doub getModB(Doub rr, Doub zz);
+
+		Doub getMirrorRatio(Doub rr, Doub zz);
+
+		/**
+		 * \brief Check whether input rr, zz is on or beyond the limiter
+		 * \note  TODO maybe should only retun *beyond* to allow for the points exactly on limiter?
+		 */
+		bool isLimiter(Doub rr, Doub zz);
+
+		/**
+		 * \brief Returns the vertical coordinate of limiter surface for any r
+		 */
+		Doub getzLimiter(Doub rr);
+
+
+		//--------------------------------------------------------------------------------------------
+		//--------------------------- End of Basic Class Implementations -----------------------------
+		//------------------------------ Start potential calculations --------------------------------
+		//--------------------------------------------------------------------------------------------
+
+		/**
 		 * \brief Calculate the pastukhov potential for given input parameters
 		 * \details Uses nr root finding to solve for normalized potential. RHS of root finding
 		 *          is implemented in Struct pastukhovHelp.
 		 */
 		Doub pastukhov(Doub Ti, Doub Te, Doub R);
 
+		/**
+		 * \brief Calculates pastukhov and writes to private member Phi_
+		 * \note configMirror() is prerequired. TODO check Rmirror_ == nullptr.
+		 */
+		void setPastukhov(Doub Ti, Doub Te, Doub multiplier = 1);
 
-		// some outputting helpers
 
+		//--------------------------------------------------------------------------------------------
+		//------------------------------ End of potential calculations -------------------------------
+		//---------------------------------- Start data outputting -----------------------------------
+		//--------------------------------------------------------------------------------------------
+		
 		/** 
 		 * \brief Starting from r0, phi0, z0, trace out a magnetic field line
 		 *        Advance position in the direction of B, length dl at a time.
 		 */
 		void fieldLines(std::ofstream &rBlist, std::ofstream &zBlist, std::ofstream &phiBlist, const Vector& init, Doub dl, int iter);
 
-
 		/**
 		 * \brief Calculate the Pastukhov potential along a single field line, 
 		 *        outputs arc length along field line l, ephi/Te, and electric field
+		 TODO check Rmirror_ == nullptr.
 		 */
 		void eField(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output);
-
 
 		/**
 		 * \brief Writes {R, Z, |B|} to output
@@ -167,17 +188,19 @@ class Orbit
 
 		/**
 		 * \brief Writes {R, Z, Rmirror} to output
+		 TODO check Rmirror_ == nullptr.
 		 */
 		void writeMirrorRatio(std::ofstream &output);
 
 		/**
 		 * \brief Writes {R, Z, ephi/Te} to output
+		 TODO check Rmirror_ == nullptr.
 		 */
-		void writePastukhov(Doub Ti, Doub Te, MatDoub& pas, std::ofstream &output);
-
+		void writePastukhov(Doub Ti, Doub Te, std::ofstream &output);
 
 		/**
 		 * \brief Writes potential on the mid plane
+		 TODO check Rmirror_ == nullptr.
 		 */
 		void midPlanePhi(Doub Ti, Doub Te, MatDoub& pas, std::ofstream &output);
 
@@ -192,7 +215,7 @@ class Orbit
 		 */
 		void emptytest();
 
-		// public data members
+		// public data members (TODO: really these all should be private)
 		int nw_, nh_;
 
 	    Doub rdim_, zdim_, rleft_, zmid_;
@@ -207,6 +230,8 @@ class Orbit
 	    MatDoub * Bz_;
 	    MatDoub * Btor_; 
 	    MatDoub * Bmod_;
+	    MatDoub * Rratio_; // initialized as nullptr until Orbit::configMirror is called.
+	    MatDoub * Phi_;  // initialized as nullptr until Orbit::setPastukhov is called.
 
 	    MatDoub * psiRZ_;
 	    MatDoub * pRZ_;
@@ -216,18 +241,22 @@ class Orbit
 
 	    VecDoub * rLimit_; // r coordinates of limiter
 	    VecDoub * zLimit_; // z coordinates of limiter
+
+
 };
 
 // Helper Functors for numerical routines
 
 struct Psir
 {
-	Bilin_interp function_;
+	INTERP2D function_;
 	const Doub   z_;
 
 	Psir(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub z)
 		:function_(rG, zG, f), z_(z)
 	{
+		/** interpolation objects need to be initialized under the colon 
+		 initializer. Otherwise the data members will be messed up. */
 		// function_ = function;
 	}
 
@@ -239,7 +268,7 @@ struct Psir
 
 struct Psiz
 {
-	Bilin_interp function_;
+	INTERP2D function_;
 	const Doub   r_;
 
 	Psiz(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub r)
@@ -256,8 +285,8 @@ struct Psiz
 
 struct psiLimiter
 {
-	Bilin_interp psifull_;
-	Linear_interp zOfR_;
+	INTERP2D psifull_;
+	INTERP1D zOfR_;
 	Doub RHS_; // RHS is user supplied psiZero at point(r, z) of the full grid
 
 	psiLimiter(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, \
@@ -317,22 +346,28 @@ struct pastukhovHelp
 	}
 };
 
+/**
+ * \brief constructs a linearly interpolated potential along an given l axis
+ * \return phi(l). Callable for use in differentiation.
+ */
 struct eFieldHelp
 {
-	// Linear_interp helper_;
-	VecDoub lList_, potList_;
+	INTERP1D helper_; // shouldn't have any problem if initialized under ':'
+	// VecDoub lList_, potList_;
 
 	eFieldHelp(VecDoub lList, VecDoub potList)
+		:helper_(lList, potList)
 	{
-		lList_ = lList;
-		potList_ = potList;
+		// lList_ = lList;
+		// potList_ = potList;
+
 		//nothing else to do
 	}
 
 	Doub operator() (Doub l)
 	{
-		Linear_interp helper(lList_, potList_);
-		return helper.interp(l);
+		// INTERP1D helper(lList_, potList_);
+		return helper_.interp(l);
 	}
 };
 
