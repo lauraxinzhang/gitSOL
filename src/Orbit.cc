@@ -243,17 +243,6 @@ Orbit::~Orbit()
 	delete zLimit_;
 }
 
-void Orbit::configMirror()
-{
-
-	MatDoub Rratio(nw_, nh_);
-	std::cerr<< "initialize mirrorRatio" << std::endl;
-	mirrorRatio( Rratio );
-	*Rratio_ = Rratio;
-	// std::cerr << "construction finished" << std::endl;
-	return;
-}
-
 Vector Orbit::getB(const Vector& pos)
 {
 	// Doub rr = pos.x();
@@ -292,17 +281,7 @@ Doub Orbit::getModB(Doub rr, Doub zz)
 	return result;
 }
 
-Doub Orbit::getMirrorRatio(Doub rr, Doub zz)
-{
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
-	INTERP2D mirror( (*rGrid_), (*zGrid_), (*Rratio_) );
 
-	Doub result = mirror.interp(rr, zz);
-
-	return result;
-}
 
 bool Orbit::isLimiter(Doub rr, Doub zz)
 {
@@ -332,19 +311,28 @@ Doub Orbit::getzLimiter(Doub rr)
 	return limiter.interp(rr);
 }
 
+void Orbit::configMirror()
+{
+	assert(Rratio_ == nullptr);
+	MatDoub * Rratio = new MatDoub(nw_, nh_);
+	mirrorRatio( *Rratio );
+	Rratio_ = Rratio;
+
+	/* this following line doesn't work because Rratio is still a nullptr
+	mirrorRatio(*Rratio_);
+	*/
+	return;
+}
 
 void Orbit::mirrorRatio(MatDoub& ratio)
 {
 	psiLimiter limit( (*rGrid_), (*zGrid_), (*psiRZ_), (*rLimit_), (*zLimit_) );
-	std::cerr << "in the loop. nh:" << nh_ << "nw:" << nw_ << std::endl;
 	for (int iz = 0; iz < nh_; ++iz){
 		for (int ir = 0; ir < nw_; ++ir){
 
     		Doub rr = (*rGrid_)[ir];
     		Doub zz = (*zGrid_)[iz];
     		limit.setRHS(rr, zz);
-
-    		// std::cerr << ir << "," << iz << std::endl;
 
     		VecDoub xb1, xb2;
     		int nroot(0);
@@ -379,11 +367,20 @@ void Orbit::mirrorRatio(MatDoub& ratio)
 	    	}   		
     	}
     }
-    std::cerr<< "what's wrong TT^TT" << std::endl;
 	return;
 }
 
+Doub Orbit::getMirrorRatio(Doub rr, Doub zz)
+{
+	if (Rratio_ == nullptr){
+		configMirror();
+	}
+	INTERP2D mirror( (*rGrid_), (*zGrid_), (*Rratio_) );
 
+	Doub result = mirror.interp(rr, zz);
+
+	return result;
+}
 
 Doub Orbit::pastukhov(Doub Ti, Doub Te, Doub R)
 {
@@ -402,32 +399,17 @@ Doub Orbit::pastukhov(Doub Ti, Doub Te, Doub R)
 
 void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
 {
-	std::cerr << "inside setPas" << std::endl;
-	// if (Rratio_ == nullptr){
-	// 	configMirror();
-	// }
-	MatDoub ratio(nw_, nh_);
-	mirrorRatio(ratio);
+	if (Rratio_ == nullptr){
+		configMirror();
+	}
 
-	// Phi_ = new MatDoub(nw_, nh_);
-	// for (int i = 0; i < nw_; ++i){
- //    	for (int j = 0; j < nh_; ++j){
- //    		if (std::isnan((*Rratio_)[i][j])){
- //    			(*Phi_)[i][j] = NAN;
- //    		} else {
-	//     		Doub mirrorR = (*Rratio_)[i][j];
-	//     		Doub x = pastukhov(Ti, Te, mirrorR);
-	//     		(*Phi_)[i][j] = x * multiplier;
-	//     	}
- //    	}
- //    }
 	Phi_ = new MatDoub(nw_, nh_);
 	for (int i = 0; i < nw_; ++i){
     	for (int j = 0; j < nh_; ++j){
-    		if (std::isnan(ratio[i][j])){
+    		if (std::isnan((*Rratio_)[i][j])){
     			(*Phi_)[i][j] = NAN;
     		} else {
-	    		Doub mirrorR = ratio[i][j];
+	    		Doub mirrorR = (*Rratio_)[i][j];
 	    		Doub x = pastukhov(Ti, Te, mirrorR);
 	    		(*Phi_)[i][j] = x * multiplier;
 	    	}
@@ -589,11 +571,11 @@ void Orbit::writeFlux(std::ofstream &output)
 
 void Orbit::writeMirrorRatio(std::ofstream &output)
 {
-	// if (Rratio_ == nullptr){
-	// 	configMirror();
-	// }
-	MatDoub ratio(nw_, nh_);
-	mirrorRatio(ratio);
+	if (Rratio_ == nullptr){
+		configMirror();
+	}
+	// MatDoub ratio(nw_, nh_);
+	// mirrorRatio(ratio);
 	for (int i = 0; i < nw_; ++i){
     	for (int j = 0; j < nh_; ++j){
     		output << (*rGrid_)[i] << ',' << (*zGrid_)[j] << ',' << (*Rratio_)[i][j] << std::endl;
