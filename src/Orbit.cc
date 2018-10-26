@@ -418,644 +418,206 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
     return;
 }
 
-void Orbit::fieldLines(std::ofstream &rBList, std::ofstream &zBList, std::ofstream &phiBList, const Vector& init, Doub dl, int iter)
+void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
 {
-    if (!rBList.is_open()) {
-    	std::cerr << "Unable to open file" << std::endl; 
-    }
+	std::string prefix  = "./output/";
+	std::string suffix = "_E_" + std::to_string(energy) + "_dr_" + std::to_string(dr) + ".out";
 
-    Vector now = init;
+	std::string coordRZ = prefix + "coordRZ" + suffix;
+	std::string coordXYZ = prefix + "coordXYZ" + suffix;
+	std::string totenergy   = prefix + "totalEnergy" + suffix;
+	std::string mag      = prefix + "Mu" + suffix;
 
-	for (int i = 0; i < iter; ++i){
-		Doub rNow = now.x();
-		Doub phiNow = now.y();
-		Doub zNow = now.z();
+	ofstream coordinatesRZ;
+	coordinatesRZ.open(coordRZ);
+	coordinatesRZ << std::setprecision(10);
 
-		if (rNow >= rleft_ + rdim_ || zNow >= zmid_ + (zdim_/2) || zNow <= zmid_ - (zdim_/2)){
-			break;
-		}
-		rBList   << std::setprecision(10) << rNow   << std::endl;
-    	phiBList << std::setprecision(10) << phiNow << std::endl;
-    	zBList   << std::setprecision(10) << zNow   << std::endl;
+	ofstream coordinatesXYZ;
+	coordinatesXYZ.open(coordXYZ);
+	coordinatesXYZ << std::setprecision(10);
 
-    	Vector bNow = getB(now);
-		Vector bHat = bNow.normalize();
+	ofstream totalEnergy;
+	totalEnergy.open(totenergy);
+	totalEnergy << std::setprecision(16);
 
-		Vector dB = bHat * dl;
-		now = now + dB;
-	}
+	ofstream magMoment;
+	magMoment.open(mag);
+	magMoment << std::setprecision(10);
 
-	return;
-}
+	// initialize particle position
+	Vector posi(rrlmtr_ - dr, 0, zmid_);
 
-void Orbit::eField(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output)
-{
-	if (!output.is_open()) {
-    	std::cerr << "Unable to open output file" << std::endl; 
-    }
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
+	//initialize an hydrogen ion with energy and direction input by user;
+	Doub vr = sqrt(energy * er * EVTOJOULE / MI); // thermal velocity
+	Doub vphi = sqrt(energy * ephi * EVTOJOULE / MI);
+	Doub vz = sqrt(energy * ez * EVTOJOULE / MI);
 
-	// Interpolate mirror ratio onto entire RZ plane
-	INTERP2D mirrorRZ((*rGrid_), (*zGrid_), (*Rratio_));
+    Vector veli(vr, vphi, vz);
+    Particle part(posi, veli, 0);
 
-    Vector  now  = init;
-    Doub    lTot = 0;
-
-    VecDoub lList(iter);
-    VecDoub potList(iter);
-
-    Doub maxIter(0);
-
-	for (int i = 0; i < iter; ++i){
-		Doub rr = now.x();
-		Doub zz = now.z();
-
-		std::cout << rr << "," << zz << std::endl;
-
-		if (isLimiter(rr, zz)){
-			std::cerr << "limiter reached after " << i << "iterations " << std::endl;
-			break;
-		} else {
-
-			Doub ratioNow  = mirrorRZ.interp(rr, zz);
-
-			if (std::isnan(ratioNow)){
-				std::cerr << "mirror ratio undefined before limiter is reached. Break after " << i << "iterations " << std::endl;
-				break;
-			}
-			Doub potential = pastukhov(Ti, Te, ratioNow);
-
-			Vector bNow = getB(now);
-			Vector bHat = bNow.normalize(); // find the direction of the magnetic field
-
-			Vector dBl = bHat * dl;
-			now = now + dBl;  // Each step's arc length is exactly dl
-
-			lTot +=dl; // Add to arclength
-
-			lList[i]   = lTot;
-			potList[i] = potential;
-			// std::cerr << lList[i] << " , " << potList[i]<< " , " << ratioNow << std::endl;
-		}
-		maxIter++;
-	}
-
-	// Done with calculating potential
-
-	if (maxIter < iter){
-	// move the elements over to a smaller container to not mess up the interpolation
-
-		VecDoub lListNew(maxIter);
-		VecDoub potListNew(maxIter);
-
-		for (int i = 0; i < maxIter; ++i){
-			lListNew[i] = lList[i];
-			potListNew[i] = potList[i];
-		}
-		lList = lListNew;
-		potList = potListNew;
-	}
-	// I don't know what this is doing anymore. Why are there trailing zeros in front?	
-	int zeroHead(0);
-	while(potList[zeroHead] == 0){
-		++zeroHead;
-	}
-	potList.erase(potList.begin(), potList.begin() + zeroHead);
-	
-
-    VecDoub eList(potList.size());
-
-
-	// Now calculate electric field via numerical differentiation.
-
-	eFieldHelp phiOfL(lList, potList);
-	Doub err;
-
-	for (int i = 0; i < potList.size(); ++i){
-
-		Doub lc = lList[i]; // get current arc location
-		if (potList[i] == 0){
-			eList[i] = NAN;
-		} else {
-	    	eList[i] = dfridr(phiOfL, lc, 0.2, err);
-	    	// << eList[i] << ", " << err << std::endl;
-	    	// std::cerr << lc << ", " << potList[i] << ", "<< phiOfL(lc) << ", " << eList[i] << ", " << err << std::endl;
-	    	// And then write results to file.
-	    }
-    	output << std::setprecision(10) << lc << "," << potList[i] << "," << eList[i] << std::endl;
-    }
-	return;
-}
-
-void Orbit::writeModB(std::ofstream &output)
-{
-	for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-    		output << (*rGrid_)[i] << ',' << (*zGrid_)[j] << ',' << (*Bmod_)[i][j] << std::endl;
-    	}
-    }
-    return;
-}
-
-void Orbit::writeFlux(std::ofstream &output)
-{
-	for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-    		output << (*rGrid_)[i] << ',' << (*zGrid_)[j] << ',' << (*psiRZ_)[i][j] << std::endl;
-    	}
-    }
-    return;
-}
-
-void Orbit::writeMirrorRatio(std::ofstream &output)
-{
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
-	// MatDoub ratio(nw_, nh_);
-	// mirrorRatio(ratio);
-	for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-    		output << (*rGrid_)[i] << ',' << (*zGrid_)[j] << ',' << (*Rratio_)[i][j] << std::endl;
-    	}
-    }
-    return;
-}
-
-void Orbit::writePastukhov( Doub Ti, Doub Te, std::ofstream &output)
-{
-	std::cerr << "calling setPastukhov" << std::endl;
-	setPastukhov(Ti, Te);
-	std::cerr << "writing to file." << std::endl;
-
-	if (!output.is_open()) {
-    	std::cerr << "Unable to open output file" << std::endl; 
-    	exit(0);
-    }
-
-	for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-	    	output << (*rGrid_)[i] << ',' << (*zGrid_)[j] << ',' << (*Phi_)[i][j] << std::endl;
-    	}
-    }
-    return;
-}
-
-void Orbit::midPlanePhi( Doub Ti, Doub Te, MatDoub& pas, std::ofstream &output)
-{
-	INTERP2D pasInterp((*rGrid_), (*zGrid_), pas);
-
-	for(Doub r = rllmtr_; r < rrlmtr_; r += 0.002){
-		Doub x = pasInterp.interp(r, 0);
-		if (!std::isnan(x)) {
-			output << r << ',' << x << std::endl;
-		}
-	}
-	return;
-}
-
-
-//----------------------------------------------------------------------
-//------------------------ TESTS ---------------------------------------
-//----------------------------------------------------------------------
-
-/**
- * \brief Tests for base functions
- *
- */
-void Orbit::test()
-{
-	std::cerr << "Entering tests:" << std::endl;
-	bool testVector   = true;
-	bool testPart     = true;
-	bool testInterp   = true;
-
-	// Flags for which tests to run
-	// Vector Tests:
-	bool vecInitAndAssign = true;
-	bool plusAndMinus     = true;
-	bool multAndDiv       = true;
-	bool dotAndMod        = true;
-	bool cross            = true;
-
-	bool normalize        = true;
-	bool parallelAndPerp  = true;
-
-	// Particle Tests:
-	bool partInitAndAssign = true;
-	bool mover             = true;
-	bool testMu                = true;
-
-	// Interpolation Tests:
-	if (testInterp){
-		std::cerr << " - Testing Linear Interpolations" << std::endl;
-		Int n = 10;
-		VecDoub xx(n), yy(n);
-		for (int i = 0; i < n ; ++i){
-			xx[i] = i;
-			yy[i] = 2.0 * i + 1;
-		}
-
-		Linear_interp line(xx, yy);
-
-		Doub x, y;
-		x = 5.5;
-		y = line.interp(x);
-
-		bool result = (y == 2*x + 1);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-
-
-	// Vector Tests:
-	if (testVector && vecInitAndAssign){
-
-		std::cerr << " - Testing Vector init, assignment, and '==' operators" << std::endl;
-
-		Vector v(2, 3, 5);
-		Vector v2 = v;
-		Vector v3;
-		Vector v4(0,0,0);
-
-		if (v == v2 && v3 == v4){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testVector && plusAndMinus){
-		std::cerr << " - Testing '+' and '-' operators" << std::endl;
-		Vector v(2, 3, 5);
-		Vector v2(1, 6, 0);
-
-		Vector vPlus(3, 9, 5);
-		Vector vMinus(1, -3, 5);
-
-		if (v + v2 == vPlus && v - v2 == vMinus){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << (v + v2) << "should be" << vPlus << std::endl;
-			std::cerr << (v - v2) << "should be" << vMinus << std::endl;
-
-		}
-
-	}
-
-	if (testVector && multAndDiv){
-		std::cerr << " - Testing '*' and '/' operators" << std::endl;
-
-		Vector v(2, 3, 5);
-		double mult  = 0.7;
-		double denom = 0.5;
-
-		Vector vMult(2*0.7, 3*0.7, 5*0.7);
-		Vector vDiv(2/0.5, 3/0.5, 5/0.5);
-
-		if (v * mult == vMult && v / denom == vDiv){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << (v * mult) << "should be" << vMult << std::endl;
-			std::cerr << (v / denom) << "should be" << vDiv << std::endl;
-
-		}
-
-	}
-
-	if (testVector && dotAndMod){
-		std::cerr << " - Testing dot and mod()" << std::endl;
-
-		Vector vl(2, 7, -8);
-		Vector vr(3, 9, 1);
-
-		double vDot = 2*3 + 7*9 + (-8)*1;
-		double vlMod = sqrt(4 + 49 + 64);
-
-		bool result = (vl.dot(vr)==vDot) && (vl.mod() == vlMod);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	
-	}
-
-	if (testVector && cross){
-		std::cerr << " - Testing cross product" << std::endl;
-
-		Vector vl(2, 7, -8);
-		Vector vr(3, 9, 1);
-
-		Vector vCross(79, -26, -3);
-		bool result = (vl.cross(vr) == vCross);
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-	
-	if (testVector && normalize){
-		std::cerr << " - Testing normalization" << std::endl;
-
-		Vector vv(4, 3, 0);
-		Vector vn(0.8, 0.6, 0);
-
-		bool result = (vv.normalize() == vn);
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testVector && parallelAndPerp){
-		std::cerr << " - Testing parallel and perp" << std::endl;
-		Vector vv(-4, 3, 0);
-		Vector B(10, 0, 0);
-
-		Vector vpara(-4, 0, 0);
-		Vector vperp(0, 3, 0);
-
-		bool para = (vv.parallel(B) == vpara);
-		bool perp = (vv.perp(B) == vperp);
-		bool result = para && perp;
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << "para calculated: " << vv.parallel(B) <<", should be: " << vpara << std::endl;
-			std::cerr << "perp calculated: " << vv.perp(B) <<", should be: " << vperp << std::endl;
-		}
-	}
-
-
-	// Particle Tests:
-	if (testPart && partInitAndAssign){
-		std::cerr << " - Testing Particle Init and assign" << std::endl;
-		
-		Vector pos(0,0,0);
-		Vector vel(0,0,0);
-		bool species = true;
-
-		Particle p;
-		Particle p2(pos, vel, species);
-
-		Vector pos2(2,80.7,0.4);
-		Vector vel2(0,8,0);
-		bool spec2 = false;
-
-		Particle p3(pos2, vel2, spec2);
-		Particle p4 = p3;
-
-		Particle p5;
-		p5.setPos(pos2);
-		p5.setVel(vel2);
-		p5.setSpec(spec2);
-
-		bool result = (p == p2)&& (p4 == p3) && (p5 == p3);
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
-	if (testPart && mover){
-		std::cerr << " - Testing Particle mover" << std::endl;
-
-		Vector E(0, 2.0, 0);
-		Vector B(0, 0, 5.0);
-		double dt = 0.1;
-
-		Vector posk(0, 0, 0);
-		Vector velk(2.0, 2.0, 0);
-		Particle part(posk, velk, false);
-
-		part.move(E, B, dt);
-
-		Vector posf(-0.12, -0.19999999, 0.0);
-		Vector velf(-1.2, -1.9999999, 0.0);
-
-		Vector posDiff = part.pos() - posf;
-		Vector velDiff = part.vel() - velf;
-		bool posB = ( posDiff.mod() < 1E-6);
-		bool velB = ( velDiff.mod() < 1E-6);
-		bool result = posB && velB;
-
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-
-			std::cerr << part.vel() << "v.s." << velf << std::endl;
-
-			std::cerr << part.pos() << "v.s." << posf << std::endl;
-		}
-
-	}
-
-	if (testPart && testMu) {
-		std::cerr << " - Testing Particle magnetic moment" << std::endl;
-
-		Vector B(0.5, 0, 0); // B has mod 0.5.
-		Vector pos(0, 0, 0); // position is not needed.
-		Vector vel(0, 0, 1); // v is entirely perpendicular, has magnitude 1
-
-		Particle part(pos, vel, false);
-		double muCorrect = part.mass();
-
-		bool result = (muCorrect == part.mu(B));
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-
-	}
-
-}
-
-// A constructor for a simple field configuration
-Orbit::Orbit()
-	 :nw_(50), nh_(50), rdim_(2), zdim_(2), rleft_(1), zmid_(1)
-	 // simag_(0),sibry_(0),dsi_(0)
-{
-	// Initialize all private data members
-	// VecDoub * rlim = new VecDoub(1);
-	// VecDoub * zlim = new VecDoub(1); // we don't need these
-
-    VecDoub * rGrid = new VecDoub(nw_);
-    VecDoub * zGrid = new VecDoub(nh_);
-    // VecDoub * siGrid = new VecDoub(1); // we won't need siGrid.
-
-    const Doub zero = 0;
-
-    MatDoub * Br   = new MatDoub(nw_, nh_, zero); // Br and Bz should be filled with 0s by default
-	MatDoub * Bz   = new MatDoub(nw_, nh_, zero);
-	MatDoub * Btor = new MatDoub(nw_, nh_);
-
-	// dummy declaration to avoid memory issues.
-	MatDoub * psiRZ = new MatDoub(1, 1);
-	psiRZ_ = psiRZ;
-	MatDoub * pRZ   = new MatDoub(1, 1);
-	pRZ_   = pRZ;
-
-	VecDoub * rLimit = new VecDoub(1);
-	VecDoub * zLimit = new VecDoub(1);
-
-	rLimit_ = rLimit;
-	zLimit_ = zLimit;
-
-
-	MatDoub * Bmod = new MatDoub(nw_, nh_);
-	Bmod_ = Bmod; // Temperary
-
-	// Fill in values for rGrid and zGrid
-	for (int i = 0; i < nw_; ++i){     // row index
-    	(*rGrid)[i] = rleft_ + i * (rdim_/nw_);
-    }
-
-    for (int j = 0; j < nh_; ++j){ // column index
-		(*zGrid)[j] = (zmid_ - zdim_/2.0) + j * (zdim_/nh_);
-	}
-
-    rGrid_ = rGrid;
-    zGrid_ = zGrid;
-
-    Doub bMax = 0.7;
-
-    // // Fill Btor with a simple 1/r dependence w/ maximum 0.2 Tesla.
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Btor)[i][j] = bMax/r;
-    // 	}
-    // }
-
-    // // A linearly decreasing field
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Btor)[i][j] = bMax - 0.1 * r;
-    // 	}
-    // } 
-
-    // A constant field
-    for (int i = 0; i < nw_; ++i){
-    	for (int j = 0; j < nh_; ++j){
-    		Doub r = (*rGrid)[i];
-    		(*Btor)[i][j] = bMax;
-    	}
-    } 
-
-    // // A one sided magnetic mirror
-    // for (int i = 0; i < nw_; ++i){
-    // 	for (int j = 0; j < nh_; ++j){
-    // 		Doub r = (*rGrid)[i];
-    // 		(*Br)[i][j] = 4 / r;
-    // 	}
-    // }    
-   
-
-    Br_   = Br;
-	Bz_   = Bz;
-	Btor_ = Btor;
-
-	return;
-}
-
-// testing function, only to be used with default constructor.
-void Orbit::emptytest()
-{
-	// run with default constructor for testing
-	// print a particle orbit and magnetic field data to file
-
-    ofstream rList;
-    rList.open ("./output/rList.out");
-
-    ofstream zList;
-    zList.open ("./output/zList.out");
-
-    ofstream phiList;
-    phiList.open("./output/phiList.out");
-
-    Vector posi(0.2, 0, zmid_);
-
-    //initialize an hydrogen ion with Ti = 100 eV;
-	Doub vv = sqrt(2.0 * 400 * EVTOJOULE / MI);
-	std::cerr << vv << std::endl;
-    Vector veli(-vv/10, 0, vv);
-
-    Particle part(posi, veli, false);
-
-    Doub dt = 10E-11;
-    // Vector EField(0, 0.0005, 0.05);
+    // A default electric field of 0;
     Vector EField(0, 0, 0);
 
+    Doub dt = 10E-10; // keep this number for ions.
 
-    for (int step = 0; step < 1000000; ++step)
+    int step = 0;
+    for (step; step < 1000000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
-    	if (part.pos().x() < 10E-6){
-    		std::cerr << "hit the wall" << std::endl;
-    		break;
-    	}
     	Vector BNow = getB(posNow);
 
-    	// std::cerr << "BField:" << BNow << std::endl;
     	part.moveCyl(EField, BNow, dt);
-    	// part.move(EField, BNow, dt);
 
-    	Doub rNow = part.pos().x();
-    	Doub phiNow = part.pos().y();
+    	Doub xNow = part.pos().x();
+    	Doub yNow = part.pos().y();
     	Doub zNow = part.pos().z();
 
-    	rList   << std::setprecision(10) << rNow   << std::endl;
-    	phiList << std::setprecision(10) << phiNow << std::endl;
-    	zList   << std::setprecision(10) << zNow   << std::endl;
+    	Doub rNow = sqrt( xNow * xNow + yNow * yNow );
+    	Doub phiNow = atan(yNow / xNow);
+
+    	if (isLimiter(rNow, zNow)){
+    		std::cerr << "particle lost to limiter after" << step << "iterations." << std::endl;
+    		break;
+    	}
+
+    	if (step % 500 == 0){ // output every 500 steps
+	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
+	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
+
+	    	Doub energy = MI * part.vel().dot(part.vel()) / (EVTOJOULE);
+    		Doub mu = part.mu(BNow);
+	    	totalEnergy    << energy << std::endl;
+	    	magMoment      << mu << std::endl;
+	    }
     }
 
-    rList.close();
-    phiList.close();
-    zList.close();
-	
-	/*
-	Vector Bstart( orbit.rleft_, 0, orbit.zmid_ );
-	Vector dv(0.1, 0, 0.1);
+    std::cerr << "program terminated after" << step << "iterations." << std::endl;
 
+    coordinatesRZ.close();
+    coordinatesXYZ.close();
+    totalEnergy.close();
+    magMoment.close();
+    return;
+}
 
-	ofstream rBList;
-    rBList.open ("./output/rBList.bout");
+Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxiter, bool write)
+{
+	std::list<Vector> initVel;
+	std::list<Vector> finlVel;
 
-    ofstream zBList;
-    zBList.open ("./output/zBList.bout");
+	std::list<Doub> paraVel;
 
-    ofstream phiBList;
-    phiBList.open("./output/phiBList.bout");
+	std::cerr<< "mirror ratio: " << getMirrorRatio(rrlmtr_ - dr, zmid_) << std::endl;
 
-	for (int i = 0; i < 5; i++){
-		Vector Bnow = Bstart + dv * i;
-		// std::cerr << Bnow << std::endl;
-	    orbit.fieldLines(rBList, zBList, phiBList, Bnow, 0.0001, 100000);
+	Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
+	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
+
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
+	Doub TLamor = 1/fLamor;
+	Doub dt = TLamor / NPERORBIT;
+
+	std::default_random_engine generator(int(time(NULL)));
+
+    std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
+
+	#pragma omp parallel
+	{
+		generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
+
+		int er, ephi, ez, diff;
+		Doub vr, vphi, vz, xNow, yNow, zNow, rNow, phiNow;
+		Vector veli, posi, posNow, BNow, vPara, vPerp, vGC;
+		Particle part;
+
+		part.setSpec(spec);
+
+		// A default electric field of 0;
+	    Vector EField(0, 0, 0);
+
+	    std::list<Vector> initVel_private; // A list of (vpara, vperp)
+	    std::list<Vector> finlVel_private;
+	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
+
+		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, posi, xNow, yNow, zNow, rNow, phiNow, diff, posNow, BNow, vGC)		
+			for (int i=0; i < nparts; ++i ){
+				// initialize particle position
+				posi = Vector(rrlmtr_ - dr, 0, zmid_);
+
+				//initialize an hydrogen ion with energy input by user, in random directions;
+				vr = distribution(generator); // generate 3 normal distributed velocities.
+				vphi =  distribution(generator);
+				vz = distribution(generator);
+
+			    veli = Vector(vr, vphi, vz);
+
+			    BNow = getB(posi);
+			    vPara = veli.parallel(BNow);
+			    vPerp = veli.perp(BNow);
+			    vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
+
+			    initVel_private.push_back(vGC); 
+
+			    part.setPos(posi);
+			    part.setVel(veli);
+
+			    for (int step = 0; step < maxiter; ++step){ 
+					posNow = part.pos();
+			    	BNow = getB(posNow);
+			    	part.moveCyl(EField, BNow, dt);
+
+			    	xNow = part.pos().x();
+			    	yNow = part.pos().y();
+			    	zNow = part.pos().z();
+			    	rNow = sqrt( xNow * xNow + yNow * yNow );
+			    	phiNow = atan(yNow / xNow);
+
+			    	if (isLimiter(rNow, zNow)){
+			    		part.lost();
+					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
+			    		// collect the final paralell velocity here
+					    vPara = part.vel().parallel(BNow);
+					    paraVel_private.push_back(vPara.mod());
+			    		break;
+			    	}
+			    }
+			}
+		#pragma omp critical
+			// collect everything from all threads back into the main structure
+			initVel.insert(initVel.end(), initVel_private.begin(), initVel_private.end());
+			finlVel.insert(finlVel.end(), finlVel_private.begin(), finlVel_private.end());
+			paraVel.insert(paraVel.end(), paraVel_private.begin(), paraVel_private.end());
+
 	}
 
-	rBList.close();
-	zBList.close();
-	phiBList.close();
-	*/
+	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
+	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
+
+
+	std::string suffix = "_E_" + std::to_string(energy).substr(0, 5) + "_dr_" + std::to_string(dr).substr(0, 4) + ".out";
+
+	// Doub sumVel = 
+	if (write){
+		ofstream initial;
+		initial.open("output/initial" + suffix);
+		ofstream final;
+		final.open("output/final" + suffix);
+		while (!initVel.empty()){
+			initial << initVel.front() << std::endl;
+			initVel.pop_front();
+		}	
+
+		while (!finlVel.empty()){
+			final << finlVel.front() << std::endl;
+			finlVel.pop_front();
+		}
+	} 
+
+	Doub gammaOut = 0;
+	while(!paraVel.empty()){
+		gammaOut += paraVel.front();
+		paraVel.pop_front();
+	}	
+	return gammaOut;
 }
 
 

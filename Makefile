@@ -4,10 +4,9 @@
 # ----- Make Macros -----
 
 CXX             = g++
-CXXFLAGS        = -g -pedantic -w -Wall -Wextra -std=c++11
-
+CXXFLAGS        = -g -pedantic -w -fopenmp -Wall -Wextra -std=c++11 -O3
 TARGETS = main
-OBJECTS = Orbit.o Vector.o Particle.o main.o
+OBJECTS = Orbit.o Orbit.test.o Orbit.write.o Vector.o Particle.o main.o
 SRCDIR  = src/
 
 # ----- Make rules -----
@@ -18,10 +17,16 @@ clean:
 	rm -rf $(TARGETS) $(OBJECTS)
 	
 main:	$(OBJECTS)
-	$(CXX) -o main $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o main $(OBJECTS)
 
 Orbit.o:	$(SRCDIR)Orbit.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.cc
+
+Orbit.test.o:	$(SRCDIR)Orbit.test.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.test.cc
+
+Orbit.write.o:	$(SRCDIR)Orbit.write.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.write.cc
 
 Vector.o:	$(SRCDIR)Vector.h $(SRCDIR)Vector.cc
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Vector.cc

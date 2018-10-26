@@ -21,10 +21,12 @@
 #include <sstream>
 #include <string>
 #include <stdio.h>
-#include <stdlib.h>
 #include <cctype>
 #include <cassert>
 #include <math.h>
+#include <omp.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 // Programmer class includes
 #include "Vector.h"
@@ -40,14 +42,19 @@
 
 
 // Physical contants. Don't change unless you find the value to be wrong.
-#define PI 3.14159265358979323846
-#define CC 299792458.0                       // speed of light
-// #define QE 4.8E-10                        // electron charge, in Fr
+#define PI 3.14159265358979323846		 // pi, no explanation needed...
+#define CC 299792458.0                   // speed of light
+// #define QE 4.8E-10                    // electron charge, in Fr
 
-#define ME 9.1E-31                        // electron mass, in kilogram
-#define MI 1.6726219E-27                  // ion mass, in kilogram
-#define QE 1.60217662E-19                 // elementary charge, in coulomb
-#define EVTOJOULE 1.60217662E-19          // conversion factor
+#define ME 9.1E-31                       // electron mass, in kilogram
+#define MI 1.6726219E-27                 // ion mass, in kilogram
+#define QE 1.60217662E-19                // elementary charge, in coulomb
+#define EVTOJOULE 1.60217662E-19         // energy conversion factor
+
+// Numbers specific to LTX geometry
+#define BMAGAXIS  2000                   // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
+#define NPERORBIT 20                     // steps per Lamor orbit, from Boris convergence test.
+
 
 /** Choose which interpolater to use throughout the class */
 // Use these two lines to compile with linear interpolations
@@ -56,7 +63,8 @@ typedef Linear_interp INTERP1D;
 typedef Bilin_interp  INTERP2D;
 
 
-// Use these two lines to compile with Spline interpolations
+// Use these two lines to compile with Spline interpolations 
+// (very slow. use only in production mode when very pretty pictures are needed)
 // typedef Spline_interp    INTERP1D;
 // typedef Spline2D_interp  INTERP2D;
 
@@ -171,7 +179,6 @@ class Orbit
 		/**
 		 * \brief Calculate the Pastukhov potential along a single field line, 
 		 *        outputs arc length along field line l, ephi/Te, and electric field
-		 TODO check Rmirror_ == nullptr.
 		 */
 		void eField(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output);
 
@@ -188,21 +195,50 @@ class Orbit
 
 		/**
 		 * \brief Writes {R, Z, Rmirror} to output
-		 TODO check Rmirror_ == nullptr.
 		 */
 		void writeMirrorRatio(std::ofstream &output);
 
 		/**
 		 * \brief Writes {R, Z, ephi/Te} to output
-		 TODO check Rmirror_ == nullptr.
 		 */
 		void writePastukhov(Doub Ti, Doub Te, std::ofstream &output);
 
 		/**
 		 * \brief Writes potential on the mid plane
-		 TODO check Rmirror_ == nullptr.
 		 */
 		void midPlanePhi(Doub Ti, Doub Te, MatDoub& pas, std::ofstream &output);
+
+		/**
+		 * \brief Outputs potential as a function of ion temperature.
+		 */
+		void temperature(Doub Ti_start, Doub dT, int iter, Doub R);
+
+		/**
+		 * \brief Print field data to file.
+		 */
+		void printData();
+
+		/**
+		 * \brief Pushes a particle in background field
+		 * \output Writes coordinates in RZ and XYZ, energy, and mu to file
+		 * \details outputs a number every 500 steps
+		 * TODO: fix this magic number 500
+		 */
+		void particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez);
+
+		/**
+		 * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 
+		 *                initial velocities
+		 * \return        Sum of all velocities for all particles lost to the limiter
+		 * \param orbit   Input Orbit object, carries magnetic geometry and more
+		 * \param dr      Radial location for particle loading
+		 * \param energy  Temperature of test particles (in eV), to initialize Maxwellian dist.
+		 * \param spec    Species of the particle. 0 for H, 1 for e.
+		 * \param nparts  Number of particles
+		 * \param maxiter Maximum number of iterations for each particle.
+		 * \param write   Whether to write list of initial and lost velocities to file, default to false.
+		 */
+		Doub particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxiter, bool write = false);
 
 
 		/**
@@ -211,16 +247,11 @@ class Orbit
 		void test();
 
 		/**
-		 *
+		 * \brief Constructs a test orbit with straight field lines.
 		 */
 		void emptytest();
 
-		// public data members (TODO: really these all should be private)
-		int nw_, nh_;
 
-	    Doub rdim_, zdim_, rleft_, zmid_;
-	    Doub rllmtr_, rrlmtr_;
-	    Doub zllmtr_, zrlmtr_;
 
 	private:
 	    
@@ -241,6 +272,12 @@ class Orbit
 
 	    VecDoub * rLimit_; // r coordinates of limiter
 	    VecDoub * zLimit_; // z coordinates of limiter
+
+		int nw_, nh_;
+
+	    Doub rdim_, zdim_, rleft_, zmid_;
+	    Doub rllmtr_, rrlmtr_;
+	    Doub zllmtr_, zrlmtr_;
 
 
 };
