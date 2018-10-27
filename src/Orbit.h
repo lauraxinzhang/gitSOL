@@ -164,6 +164,20 @@ class Orbit
 		 */
 		void setPastukhov(Doub Ti, Doub Te, Doub multiplier = 1);
 
+		/**
+		 * \brief calculate E field between grids points w/ finite difference.
+		 */
+		void setEField();
+
+		void setGridShift();
+
+		/**
+		 * \brief Get the electric field at a position
+		 * \param pos Current position as a Vector class member in cartesian coordinate.
+		 * \return Electric field as a 3D Vector in cylindrical coordinate.
+		 */
+		Vector getE(const Vector& pos);
+
 
 		//--------------------------------------------------------------------------------------------
 		//------------------------------ End of potential calculations -------------------------------
@@ -174,13 +188,15 @@ class Orbit
 		 * \brief Starting from r0, phi0, z0, trace out a magnetic field line
 		 *        Advance position in the direction of B, length dl at a time.
 		 */
-		void fieldLines(std::ofstream &rBlist, std::ofstream &zBlist, std::ofstream &phiBlist, const Vector& init, Doub dl, int iter);
+		void fieldLines(std::ofstream &rBlist, std::ofstream &zBlist, \
+			std::ofstream &phiBlist, const Vector& init, Doub dl, int iter);
 
 		/**
 		 * \brief Calculate the Pastukhov potential along a single field line, 
 		 *        outputs arc length along field line l, ephi/Te, and electric field
 		 */
-		void eField(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output);
+		void eFieldSingle(Doub Ti, Doub Te, Vector init, Doub dl, int iter, \
+			std::ofstream &output);
 
 		/**
 		 * \brief Writes {R, Z, |B|} to output
@@ -214,6 +230,12 @@ class Orbit
 		void temperature(Doub Ti_start, Doub dT, int iter, Doub R);
 
 		/**
+		 * \brief Calculates and outputs electric field
+		 */
+		void writeEField(Doub Ti, Doub Te, std::ofstream &Er, std::ofstream &Ez,\
+			Doub mult = 1);
+
+		/**
 		 * \brief Print field data to file.
 		 */
 		void printData();
@@ -224,7 +246,7 @@ class Orbit
 		 * \details outputs a number every 500 steps
 		 * TODO: fix this magic number 500
 		 */
-		void particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez);
+		void particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez);
 
 		/**
 		 * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 
@@ -238,7 +260,8 @@ class Orbit
 		 * \param maxiter Maximum number of iterations for each particle.
 		 * \param write   Whether to write list of initial and lost velocities to file, default to false.
 		 */
-		Doub particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxiter, bool write = false);
+		Doub particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult,\
+			int maxiter, bool write = false);
 
 
 		/**
@@ -264,11 +287,16 @@ class Orbit
 	    MatDoub * Rratio_; // initialized as nullptr until Orbit::configMirror is called.
 	    MatDoub * Phi_;  // initialized as nullptr until Orbit::setPastukhov is called.
 
+	    MatDoub * Er_; // stored on shifted grid rGrid_ + (dr_ / 2)
+	    MatDoub * Ez_; // stored on shifted grid zGrid_ + (dz_ / 2)
+
 	    MatDoub * psiRZ_;
 	    MatDoub * pRZ_;
 
 	    VecDoub * rGrid_; // r grid points
 	    VecDoub * zGrid_; // z grid points
+	    VecDoub * rShift_; // shifted grif rGrid_ + (dr_ / 2)
+	    VecDoub * zShift_; // shifted grid zGrid_ + (dz_ / 2)
 
 	    VecDoub * rLimit_; // r coordinates of limiter
 	    VecDoub * zLimit_; // z coordinates of limiter
@@ -278,6 +306,7 @@ class Orbit
 	    Doub rdim_, zdim_, rleft_, zmid_;
 	    Doub rllmtr_, rrlmtr_;
 	    Doub zllmtr_, zrlmtr_;
+	    Doub dr_, dz_;
 
 
 };
@@ -393,17 +422,10 @@ struct eFieldHelp
 	// VecDoub lList_, potList_;
 
 	eFieldHelp(VecDoub lList, VecDoub potList)
-		:helper_(lList, potList)
-	{
-		// lList_ = lList;
-		// potList_ = potList;
-
-		//nothing else to do
-	}
+		:helper_(lList, potList){}
 
 	Doub operator() (Doub l)
 	{
-		// INTERP1D helper(lList_, potList_);
 		return helper_.interp(l);
 	}
 };

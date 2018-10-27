@@ -35,13 +35,10 @@
 	// To get an interpolated value:
 	Doub x, y;
 	y = myfuncinterp(x);
-
-	// Int, Doub, and other capitalized data types are defined in nr3.h
 */
 
-
 /*
-	To use 2D bilinear interpolations:
+	To use 2D interpolations:
 
 	Int m = ..., n = ...;
 	MatDoub yy(m, n);       // function values defined on grid points
@@ -55,7 +52,8 @@
 */
 
 Orbit::Orbit(const std::string& field, const std::string& limiter)
-	: Phi_(nullptr), Rratio_(nullptr)
+	: Phi_(nullptr), Rratio_(nullptr), Er_(nullptr), Ez_(nullptr),\
+	  rShift_(nullptr), zShift_(nullptr)
 {
 	// Read and configure field here, 
 	// read limiter coordinates in helper function.
@@ -104,9 +102,7 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 	for (int ir = 0; ir < nw; ir++){
 		double rNow;
 		myfile >> std::setprecision(10) >> rNow;
-
 		(*rGrid)[ir] = rNow;
-
 		for (int iz = 0; iz < nh; iz++){
 			double zNow;
 			double BrNow;
@@ -115,12 +111,12 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 			double PNow;
 			double PsiNow;
 
-			myfile >> std::setprecision(10) >> zNow >> BrNow >> BtNow >> BzNow >> PNow >> PsiNow;
+			myfile >> std::setprecision(10) >> zNow >> BrNow >> BtNow >> \
+			BzNow >> PNow >> PsiNow;
 
 			// transfer everything to the matrix
 			// ignore pressure for now.
 			(*zGrid)[iz] = zNow;
-
 			(*Br)[ir][iz] = BrNow;
 			(*Btor)[ir][iz] = BtNow;
 			(*Bz)[ir][iz] = BzNow;
@@ -131,7 +127,6 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 
 			(*psiRZ)[ir][iz] = PsiNow;
 			(*pRZ)[ir][iz]   = PNow;
-
 			if (iz != nh - 1){
 				// pop the R value from the next line
 				double rNext;
@@ -158,20 +153,18 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 	rleft_ = (*rGrid_)[0];
 	zmid_ = 0;
 
+	dr_ = (*rGrid_)[1] - (*rGrid_)[0];
+	dz_ = (*zGrid_)[1] - (*zGrid_)[0];
+
 	//DONE with reading .dat file.
-
 	// Read from limiter file now.
-
 	ifstream limit;
 	limit.open(limiter);
 	readLimiter(limit);
-
 	if (limit.is_open()){
 		limit.close();
 	}
-
 	return;
-
 }	
 
 void Orbit::readLimiter(std::ifstream &input)
@@ -183,7 +176,6 @@ void Orbit::readLimiter(std::ifstream &input)
     }
 
     std::string a;
-
     while (input >> a){
     	// truncates all the crap in front until a number is reached. 
     	// 
@@ -192,7 +184,6 @@ void Orbit::readLimiter(std::ifstream &input)
     		if (dum == 0){ break; }
     	}	    
 	}
-
 
 	VecDoub * rLimit = new VecDoub(70); // coord file has 70 lines right now, hard coded in.
 	VecDoub * zLimit = new VecDoub(70);
@@ -225,12 +216,8 @@ Orbit::~Orbit()
 	delete Bz_;
 	delete Btor_;
 	delete Bmod_;
-	if (Rratio_!=nullptr){
-		delete Rratio_;
-	}
-	if (Phi_ != nullptr){
-		delete Phi_;
-	}
+	if (Rratio_!=nullptr) delete Rratio_;
+	if (Phi_ != nullptr) delete Phi_;
 
 	delete psiRZ_;
 	delete pRZ_;
@@ -248,7 +235,6 @@ Vector Orbit::getB(const Vector& pos)
 	// Doub rr = pos.x();
 
 	Doub zz = pos.z();
-
 	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
 
 
@@ -372,9 +358,7 @@ void Orbit::mirrorRatio(MatDoub& ratio)
 
 Doub Orbit::getMirrorRatio(Doub rr, Doub zz)
 {
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
+	if (Rratio_ == nullptr) configMirror();
 	INTERP2D mirror( (*rGrid_), (*zGrid_), (*Rratio_) );
 
 	Doub result = mirror.interp(rr, zz);
@@ -399,9 +383,7 @@ Doub Orbit::pastukhov(Doub Ti, Doub Te, Doub R)
 
 void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
 {
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
+	if (Rratio_ == nullptr) configMirror();
 
 	Phi_ = new MatDoub(nw_, nh_);
 	for (int i = 0; i < nw_; ++i){
@@ -418,10 +400,91 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
     return;
 }
 
-void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
+
+void Orbit::setEField()
+{
+	int zero(0);
+	MatDoub * Er = new MatDoub(nw_ - 1, nh_ - 1, zero); // initialize to 0
+	MatDoub * Ez = new MatDoub(nw_ - 1, nh_ - 1, zero);
+
+	Doub phiNow, phiRight, phiUp, dPhidR, dPhidZ;
+	// calculate field
+	// TODO: r should be no problem, z will be a trouble.
+	for (int ir = 0; ir < nw_ - 1; ++ir){
+		// Doub rNow = rShift[i];
+    	for (int iz = 0; iz < nh_ - 1; ++iz){
+    		
+    		phiNow   = (*Phi_)[ir][iz];
+    		phiRight = (*Phi_)[ir + 1][iz];
+    		phiUp    = (*Phi_)[ir][iz + 1];
+
+    		if ( phiNow != 0 && phiNow != NAN && phiRight != NAN && phiRight != 0 ) { // r derivative is defined
+	    		dPhidR = (phiRight - phiNow) / dr_;
+	    		(*Er)[ir][iz] = dPhidR;
+	    	}
+	    	if ( phiNow != 0 && phiNow != NAN && phiUp != NAN && phiUp != 0 ){ // z derivative is defined
+	    		dPhidZ = (phiUp    - phiNow) / dz_;
+	    		(*Ez)[ir][iz] = dPhidZ;
+	    	}
+    	}
+    }
+    Er_ = Er; // try this
+    Ez_ = Ez;
+
+    setGridShift();
+    return;
+}
+
+void Orbit::setGridShift()
+{
+	if(rShift_ == nullptr){ // if shifted grids haven't been created yet
+		// create shifted r-z grids (up - right shift)
+		VecDoub * rShift = new VecDoub( rGrid_ -> begin(), --rGrid_ -> end() );
+		VecDoub * zShift = new VecDoub( zGrid_ -> begin(), --zGrid_ -> end() );
+		assert(rShift->size() == nw_ - 1);
+		assert(zShift->size() == nh_ - 1);
+
+		for (int i = 0; i < nw_ - 1; ++i){
+			(*rShift)[i] += dr_ / 2; // shift by half a grid size
+		}
+		for (int j = 0; j < nh_ - 1; ++j){
+			(*zShift)[j] += dz_ / 2;
+		}
+		rShift_ = rShift;
+		zShift_ = zShift;
+	}
+	return;
+}
+
+Vector Orbit::getE(const Vector& pos)
+{
+	if (rShift_ == nullptr) setGridShift();
+	if (Er_ == nullptr) setEField();
+
+	INTERP2D fieldR((*rShift_),  (*zGrid_ ), *Er_);
+	INTERP2D fieldZ((*rGrid_ ),  (*zShift_), *Ez_);
+
+	Doub zz = pos.z();
+	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
+
+	Doub Er(0), Ez(0); // start with default value 0
+	// std::cerr << (*rShift_)[0] << std::endl;
+
+	if ( rr >= (*rShift_).front() && rr <= (*rShift_).back()){
+		Er = fieldR.interp(rr, zz);
+	}
+	if ( zz >= (*zShift_).front() && zz <= (*zShift_).back()){
+		Ez = fieldZ.interp(rr, zz);
+	}
+	Vector gotE(Er, 0, Ez);
+	return gotE;
+}
+
+void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez)
 {
 	std::string prefix  = "./output/";
-	std::string suffix = "_E_" + std::to_string(energy) + "_dr_" + std::to_string(dr) + ".out";
+	std::string suffix = "_E_" + std::to_string(energy) + "_dr_" + \
+	std::to_string(dr) + "spec" + std::to_string(spec) + ".out";
 
 	std::string coordRZ = prefix + "coordRZ" + suffix;
 	std::string coordXYZ = prefix + "coordXYZ" + suffix;
@@ -444,6 +507,10 @@ void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
 	magMoment.open(mag);
 	magMoment << std::setprecision(10);
 
+	//prepare electric potential
+	setPastukhov(0.2, 1, 1);
+	setEField();
+
 	// initialize particle position
 	Vector posi(rrlmtr_ - dr, 0, zmid_);
 
@@ -456,17 +523,23 @@ void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
     Particle part(posi, veli, 0);
 
     // A default electric field of 0;
-    Vector EField(0, 0, 0);
+    // Vector EField(0, 0, 0);
 
-    Doub dt = 10E-10; // keep this number for ions.
+    // calculate time step
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
+	Doub TLamor = 1/fLamor;
+	Doub dt = TLamor / NPERORBIT;
+
+    // Doub dt = 10E-10; // keep this number for ions.
 
     int step = 0;
     for (step; step < 1000000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
     	Vector BNow = getB(posNow);
+    	Vector ENow = getE(posNow);
 
-    	part.moveCyl(EField, BNow, dt);
+    	part.moveCyl(ENow, BNow, dt);
 
     	Doub xNow = part.pos().x();
     	Doub yNow = part.pos().y();
@@ -476,11 +549,13 @@ void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
     	Doub phiNow = atan(yNow / xNow);
 
     	if (isLimiter(rNow, zNow)){
-    		std::cerr << "particle lost to limiter after" << step << "iterations." << std::endl;
+    		std::cerr << "particle lost to limiter after" << step \
+    		<< "iterations." << std::endl;
     		break;
     	}
 
-    	if (step % 500 == 0){ // output every 500 steps
+    	// if (step % 500 == 0){ // output every 500 steps
+    	if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
@@ -500,14 +575,16 @@ void Orbit::particlePush(Doub dr, Doub energy, Doub er, Doub ephi, Doub ez)
     return;
 }
 
-Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxiter, bool write)
+Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult,\
+	int maxiter, bool write)
 {
 	std::list<Vector> initVel;
 	std::list<Vector> finlVel;
 
 	std::list<Doub> paraVel;
 
-	std::cerr<< "mirror ratio: " << getMirrorRatio(rrlmtr_ - dr, zmid_) << std::endl;
+	std::cerr << "mirror ratio: " << getMirrorRatio(rrlmtr_ - dr, zmid_) \
+	<< std::endl;
 
 	Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
 	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
@@ -515,6 +592,13 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxit
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
+
+	// //prepare electric potential
+	// setPastukhov(0.2, 1, mult);
+	// setEField();
+
+	// A default electric field of 0;
+    Vector EField(0, 0, 0);
 
 	std::default_random_engine generator(int(time(NULL)));
 
@@ -526,19 +610,20 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxit
 
 		int er, ephi, ez, diff;
 		Doub vr, vphi, vz, xNow, yNow, zNow, rNow, phiNow;
-		Vector veli, posi, posNow, BNow, vPara, vPerp, vGC;
+		Vector veli, posi, posNow, BNow, ENow, vPara, vPerp, vGC;
 		Particle part;
 
 		part.setSpec(spec);
 
 		// A default electric field of 0;
-	    Vector EField(0, 0, 0);
+	    // Vector EField(0, 0, 0);
 
 	    std::list<Vector> initVel_private; // A list of (vpara, vperp)
 	    std::list<Vector> finlVel_private;
 	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
 
-		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, posi, xNow, yNow, zNow, rNow, phiNow, diff, posNow, BNow, vGC)		
+		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, \
+		posi, xNow, yNow, zNow, rNow, phiNow, diff, posNow, BNow, vGC)		
 			for (int i=0; i < nparts; ++i ){
 				// initialize particle position
 				posi = Vector(rrlmtr_ - dr, 0, zmid_);
@@ -551,6 +636,8 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxit
 			    veli = Vector(vr, vphi, vz);
 
 			    BNow = getB(posi);
+	    	    // ENow = getE(posi);
+
 			    vPara = veli.parallel(BNow);
 			    vPerp = veli.perp(BNow);
 			    vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
@@ -563,6 +650,9 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxit
 			    for (int step = 0; step < maxiter; ++step){ 
 					posNow = part.pos();
 			    	BNow = getB(posNow);
+	    			// ENow = getE(posNow);
+
+			    	// part.moveCyl(ENow, BNow, dt);
 			    	part.moveCyl(EField, BNow, dt);
 
 			    	xNow = part.pos().x();
@@ -593,7 +683,8 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, int maxit
 	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
 
 
-	std::string suffix = "_E_" + std::to_string(energy).substr(0, 5) + "_dr_" + std::to_string(dr).substr(0, 4) + ".out";
+	std::string suffix = "_E_" + std::to_string(energy).substr(0, 5) + "_dr_" \
+	+ std::to_string(dr).substr(0, 4) + ".out";
 
 	// Doub sumVel = 
 	if (write){

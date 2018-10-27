@@ -21,7 +21,8 @@
 
 #include "Orbit.h"
 
-void Orbit::fieldLines(std::ofstream &rBList, std::ofstream &zBList, std::ofstream &phiBList, const Vector& init, Doub dl, int iter)
+void Orbit::fieldLines(std::ofstream &rBList, std::ofstream &zBList, \
+	std::ofstream &phiBList, const Vector& init, Doub dl, int iter)
 {
     if (!rBList.is_open()) {
     	std::cerr << "Unable to open file" << std::endl; 
@@ -34,9 +35,9 @@ void Orbit::fieldLines(std::ofstream &rBList, std::ofstream &zBList, std::ofstre
 		Doub phiNow = now.y();
 		Doub zNow = now.z();
 
-		if (rNow >= rleft_ + rdim_ || zNow >= zmid_ + (zdim_/2) || zNow <= zmid_ - (zdim_/2)){
-			break;
-		}
+		if (rNow >= rleft_ + rdim_ || zNow >= zmid_ + (zdim_/2) || \
+			zNow <= zmid_ - (zdim_/2)) 	break;
+		
 		rBList   << std::setprecision(10) << rNow   << std::endl;
     	phiBList << std::setprecision(10) << phiNow << std::endl;
     	zBList   << std::setprecision(10) << zNow   << std::endl;
@@ -51,14 +52,12 @@ void Orbit::fieldLines(std::ofstream &rBList, std::ofstream &zBList, std::ofstre
 	return;
 }
 
-void Orbit::eField(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output)
+void Orbit::eFieldSingle(Doub Ti, Doub Te, Vector init, Doub dl, int iter, std::ofstream &output)
 {
 	if (!output.is_open()) {
     	std::cerr << "Unable to open output file" << std::endl; 
     }
-	if (Rratio_ == nullptr){
-		configMirror();
-	}
+	if (Rratio_ == nullptr) configMirror();
 
 	// Interpolate mirror ratio onto entire RZ plane
 	INTERP2D mirrorRZ((*rGrid_), (*zGrid_), (*Rratio_));
@@ -238,6 +237,27 @@ void Orbit::temperature(Doub Ti_start, Doub dT, int iter, Doub R)
 	return;
 }
 
+void Orbit::writeEField(Doub Ti, Doub Te, std::ofstream &Er, std::ofstream &Ez,\
+			Doub mult)
+{
+	if (!Er.is_open() || !Ez.is_open()) {
+    	std::cerr << "Unable to open output file" << std::endl; 
+    	exit(0);
+    }
+    setPastukhov(Ti, Te, mult);
+    setEField();
+
+    assert(Er_ != nullptr);
+    assert(rShift_ != nullptr);
+
+	for (int i = 0; i < nw_ - 1; ++i){
+    	for (int j = 0; j < nh_ - 1; ++j){
+	    	Er << (*rShift_)[i] << ',' << (*zShift_)[j] << ',' << (*Er_)[i][j] << std::endl;
+	    	Ez << (*rShift_)[i] << ',' << (*zShift_)[j] << ',' << (*Ez_)[i][j] << std::endl;
+    	}
+    }
+}
+
 void Orbit::printData()
 {
 	/*
@@ -283,4 +303,11 @@ void Orbit::printData()
 	Vector start(rStart, 0, zStart);
 	orbit.eField(2, 1, start, 0.005, 15000, eFieldLine2);
 	*/
+
+	ofstream Er, Ez;
+	Er.open("./output/Er.out");
+	Ez.open("./output/Ez.out");
+	writeEField(0.2, 1, Er, Ez, 1);
+	Er.close();
+	Ez.close();
 }

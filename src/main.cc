@@ -142,13 +142,16 @@ int main(int argc, const char** argv)
     	// TODO implement this
     	std::cerr << "Let's push some particles!" << std::endl;
     	double dr, energy, er(0), ephi(0), ez(0);
+    	bool spec;
 
-    	if (args.size() != 5){
+    	if (args.size() != 6){
     		std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
     		std::cerr << "Give a starting radial position, dr from limiter:" << std::endl;
     		std::cin >> dr;
     		std::cerr << "Energy of the particle:" << std::endl;
     		std::cin >> energy;
+    		std::cerr << "species of the particle, 1 for electron, 0 for hydrogen:" << std::endl;
+    		std::cin >> spec;
     		
 
     		while ( abs(er + ephi + ez - 1) > 1E-16){
@@ -181,18 +184,18 @@ int main(int argc, const char** argv)
     	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
 
     	//dr = 0.06 for a big SOL banana!
-    	orbit.particlePush(dr, energy, er, ephi, ez);
+    	orbit.particlePush(dr, energy, spec, er, ephi, ez);
 
     	std::cerr << "Done." << std::endl;
     }
     else if (controller == std::string("-stat"))
     {
-    	double dr, energy;
+    	double dr, energy, mult;
     	bool spec;
     	int nparts, maxiter;
     	bool write;
     	// TODO implement this
-    	if (args.size() == 6){
+    	if (args.size() == 7){
     		dr = stod(args.front());
     		args.pop_front();
     		energy = stod(args.front());
@@ -200,6 +203,8 @@ int main(int argc, const char** argv)
     		spec = stoi(args.front());
     		args.pop_front();
     		nparts = stod(args.front());
+    		args.pop_front();
+    		mult = stod(args.front());
     		args.pop_front();
     		maxiter = stod(args.front());
     		args.pop_front();
@@ -215,6 +220,8 @@ int main(int argc, const char** argv)
     		std::cin >> spec;
     		std::cerr << "Number of particles to push: " << std::endl;
     		std::cin >> nparts;
+    		std::cerr << "Multiplier on potential: " << std::endl;
+    		std::cin >> mult;
     		std::cerr << "Maximum iteration for each particle: " << std::endl;
     		std::cin >> maxiter;
     		std::cerr << "Write loss cone to file? 1 for yes, 0 for no." << std::endl;
@@ -223,7 +230,7 @@ int main(int argc, const char** argv)
     	}
     	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
 
-    	Doub gammaOut = orbit.particleStats(dr, energy, spec, nparts, maxiter, write);
+    	Doub gammaOut = orbit.particleStats(dr, energy, spec, nparts, mult, maxiter, write);
 
     	std::cout << '(' << nparts << ',' << gammaOut << ")," << std::endl;
 
