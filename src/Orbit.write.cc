@@ -307,7 +307,7 @@ void Orbit::printData()
 	ofstream Er, Ez;
 	Er.open("./output/Er.out");
 	Ez.open("./output/Ez.out");
-	writeEField(0.2, 1, Er, Ez, 1);
+	writeEField(0.2, 1, Er, Ez, 2);
 	Er.close();
 	Ez.close();
 }

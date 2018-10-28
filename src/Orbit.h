@@ -246,7 +246,7 @@ class Orbit
 		 * \details outputs a number every 500 steps
 		 * TODO: fix this magic number 500
 		 */
-		void particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez);
+		void particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez, Doub mult = 1);
 
 		/**
 		 * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 

@@ -47,6 +47,7 @@ void Orbit::test()
 	bool mover             = true;
 	bool testMu                = true;
 
+	bool testPastukhov = true;
 	bool testEField    = true;
 
 	// Interpolation Tests:
@@ -296,6 +297,26 @@ void Orbit::test()
 		Vector eTest = getE(pos);
 
 		bool result = (eTest == Vector(0, 0, 0));
+		if (result){
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+		}
+	}
+
+	if (testPastukhov) {
+		std::cerr << " - Testing empty pastukhov calculation" << std::endl;
+
+		Vector pos(rrlmtr_ - 0.06, 0, zmid_);
+
+		setPastukhov(0.2, 1, 0); // create a uniformly zero potential
+		Vector zero(0, 0, 0);
+
+		bool notnull = (Phi_ != nullptr);
+		bool blank = ((*Phi_)[230][130] == 0 || (*Phi_)[230][130] == NAN);
+
+		bool result = notnull && blank;
+
 		if (result){
 			std::cerr << " -- Passed" << std::endl;
 		} else {

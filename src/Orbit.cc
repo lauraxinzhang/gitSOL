@@ -404,8 +404,10 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
 void Orbit::setEField()
 {
 	int zero(0);
+	std::cerr << "zero is: " << zero << std::endl;
 	MatDoub * Er = new MatDoub(nw_ - 1, nh_ - 1, zero); // initialize to 0
 	MatDoub * Ez = new MatDoub(nw_ - 1, nh_ - 1, zero);
+	assert( (*Er)[1][1] == 0);
 
 	Doub phiNow, phiRight, phiUp, dPhidR, dPhidZ;
 	// calculate field
@@ -418,16 +420,18 @@ void Orbit::setEField()
     		phiRight = (*Phi_)[ir + 1][iz];
     		phiUp    = (*Phi_)[ir][iz + 1];
 
-    		if ( phiNow != 0 && phiNow != NAN && phiRight != NAN && phiRight != 0 ) { // r derivative is defined
+    		if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiRight) && phiRight != 0 ) { // r derivative is defined
 	    		dPhidR = (phiRight - phiNow) / dr_;
 	    		(*Er)[ir][iz] = dPhidR;
-	    	}
-	    	if ( phiNow != 0 && phiNow != NAN && phiUp != NAN && phiUp != 0 ){ // z derivative is defined
+	    	} 
+	    	if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiUp) && phiUp != 0 ){ // z derivative is defined
 	    		dPhidZ = (phiUp    - phiNow) / dz_;
 	    		(*Ez)[ir][iz] = dPhidZ;
-	    	}
+	    	} 
     	}
     }
+    std::cerr << "new zero" << (*Er)[5][5] << std::endl;
+    assert( (*Er)[5][5] == 0);
     Er_ = Er; // try this
     Ez_ = Ez;
 
@@ -480,11 +484,12 @@ Vector Orbit::getE(const Vector& pos)
 	return gotE;
 }
 
-void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez)
+void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez, Doub mult)
 {
+	int species = spec;
 	std::string prefix  = "./output/";
 	std::string suffix = "_E_" + std::to_string(energy) + "_dr_" + \
-	std::to_string(dr) + "spec" + std::to_string(spec) + ".out";
+	std::to_string(dr) + "spec" + std::to_string(species) + "mult" + std::to_string(mult)+ ".out";
 
 	std::string coordRZ = prefix + "coordRZ" + suffix;
 	std::string coordXYZ = prefix + "coordXYZ" + suffix;
@@ -495,20 +500,20 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	coordinatesRZ.open(coordRZ);
 	coordinatesRZ << std::setprecision(10);
 
-	ofstream coordinatesXYZ;
-	coordinatesXYZ.open(coordXYZ);
-	coordinatesXYZ << std::setprecision(10);
+	// ofstream coordinatesXYZ;
+	// coordinatesXYZ.open(coordXYZ);
+	// coordinatesXYZ << std::setprecision(10);
 
-	ofstream totalEnergy;
-	totalEnergy.open(totenergy);
-	totalEnergy << std::setprecision(16);
+	// ofstream totalEnergy;
+	// totalEnergy.open(totenergy);
+	// totalEnergy << std::setprecision(16);
 
-	ofstream magMoment;
-	magMoment.open(mag);
-	magMoment << std::setprecision(10);
+	// ofstream magMoment;
+	// magMoment.open(mag);
+	// magMoment << std::setprecision(10);
 
 	//prepare electric potential
-	setPastukhov(0.2, 1, 1);
+	setPastukhov(0.2, 1, mult);
 	setEField();
 
 	// initialize particle position
@@ -533,7 +538,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     // Doub dt = 10E-10; // keep this number for ions.
 
     int step = 0;
-    for (step; step < 1000000; ++step) // basically run it till it's lost
+    for (step; step < 300000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
     	Vector BNow = getB(posNow);
@@ -554,24 +559,25 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	// if (step % 500 == 0){ // output every 500 steps
-    	if (true){ // always output
+    	if (step % 10 == 0){ // output every 500 steps
+    	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
-	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
+	    	// coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
 	    	Doub energy = MI * part.vel().dot(part.vel()) / (EVTOJOULE);
     		Doub mu = part.mu(BNow);
-	    	totalEnergy    << energy << std::endl;
-	    	magMoment      << mu << std::endl;
+	    	// totalEnergy    << energy << std::endl;
+	    	// magMoment      << mu << std::endl;
+	    	// std::cerr << step << std::endl;
 	    }
     }
 
     std::cerr << "program terminated after" << step << "iterations." << std::endl;
 
     coordinatesRZ.close();
-    coordinatesXYZ.close();
-    totalEnergy.close();
-    magMoment.close();
+    // coordinatesXYZ.close();
+    // totalEnergy.close();
+    // magMoment.close();
     return;
 }
 

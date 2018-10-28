@@ -141,10 +141,10 @@ int main(int argc, const char** argv)
     {
     	// TODO implement this
     	std::cerr << "Let's push some particles!" << std::endl;
-    	double dr, energy, er(0), ephi(0), ez(0);
+    	double dr, energy, mult, er(0), ephi(0), ez(0);
     	bool spec;
 
-    	if (args.size() != 6){
+    	if (args.size() != 7){
     		std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
     		std::cerr << "Give a starting radial position, dr from limiter:" << std::endl;
     		std::cin >> dr;
@@ -163,6 +163,9 @@ int main(int argc, const char** argv)
 	    		std::cerr << "Fraction of energy in z direction:" << std::endl;
 	    		std::cin >> ez;
     		}
+    		std::cerr << "Pastukhov multiplier:" << std::endl;
+    		std::cin >> mult;
+
     		std::cerr << "All set." << std::endl;
 
     	} else {
@@ -170,6 +173,9 @@ int main(int argc, const char** argv)
     		args.pop_front();
 
     		energy = stod(args.front());
+    		args.pop_front();
+
+    		spec = stoi(args.front());
     		args.pop_front();
 
     		er = stod(args.front());
@@ -180,11 +186,14 @@ int main(int argc, const char** argv)
 
     		ez = stod(args.front());
     		args.pop_front();
+
+    		mult = stod(args.front());
+    		args.pop_front();
     	}
     	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
 
     	//dr = 0.06 for a big SOL banana!
-    	orbit.particlePush(dr, energy, spec, er, ephi, ez);
+    	orbit.particlePush(dr, energy, spec, er, ephi, ez, mult);
 
     	std::cerr << "Done." << std::endl;
     }
@@ -198,16 +207,22 @@ int main(int argc, const char** argv)
     	if (args.size() == 7){
     		dr = stod(args.front());
     		args.pop_front();
+
     		energy = stod(args.front());
     		args.pop_front();
+
     		spec = stoi(args.front());
     		args.pop_front();
+
     		nparts = stod(args.front());
     		args.pop_front();
+
     		mult = stod(args.front());
     		args.pop_front();
+
     		maxiter = stod(args.front());
     		args.pop_front();
+    		
     		write = stoi(args.front());
     		args.pop_front();
     	} else {
