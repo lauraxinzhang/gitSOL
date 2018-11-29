@@ -1,2 +1,3 @@
 make clean
-scp -r * xzhang@portal:SOL
+scp -r src xzhang@portal:gitSOL/.
+scp Makefile xzhang@portal:gitSOL

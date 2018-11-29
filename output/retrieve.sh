@@ -1,1 +1,1 @@
-scp xzhang@portal:SOL/output/*.out .
+scp xzhang@portal:gitSOL/output/*.out .
