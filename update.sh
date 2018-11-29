@@ -1,2 +1,2 @@
 make clean
-scp -r * xzhang@portal:SOL
+scp -r * xzhang@portal:gitSOL/.

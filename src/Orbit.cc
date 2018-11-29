@@ -504,13 +504,13 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	// coordinatesXYZ.open(coordXYZ);
 	// coordinatesXYZ << std::setprecision(10);
 
-	// ofstream totalEnergy;
-	// totalEnergy.open(totenergy);
-	// totalEnergy << std::setprecision(16);
+	ofstream totalEnergy;
+	totalEnergy.open(totenergy);
+	totalEnergy << std::setprecision(16);
 
-	// ofstream magMoment;
-	// magMoment.open(mag);
-	// magMoment << std::setprecision(10);
+	ofstream magMoment;
+	magMoment.open(mag);
+	magMoment << std::setprecision(10);
 
 	//prepare electric potential
 	setPastukhov(0.2, 1, mult);
@@ -519,19 +519,23 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	// initialize particle position
 	Vector posi(rrlmtr_ - dr, 0, zmid_);
 
+	// mass toggle
+	assert(species == 1 || species == 0);
+	Doub mass = MI * (1 - species) + ME * species;
+
 	//initialize an hydrogen ion with energy and direction input by user;
-	Doub vr = sqrt(energy * er * EVTOJOULE / MI); // thermal velocity
-	Doub vphi = sqrt(energy * ephi * EVTOJOULE / MI);
-	Doub vz = sqrt(energy * ez * EVTOJOULE / MI);
+	Doub vr = sqrt(energy * er * EVTOJOULE / mass); // thermal velocity
+	Doub vphi = sqrt(energy * ephi * EVTOJOULE / mass);
+	Doub vz = sqrt(energy * ez * EVTOJOULE / mass);
 
     Vector veli(vr, vphi, vz);
-    Particle part(posi, veli, 0);
+    Particle part(posi, veli, spec);
 
     // A default electric field of 0;
     // Vector EField(0, 0, 0);
 
     // calculate time step
-	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
+	Doub fLamor = ( 1520 * (1 - species) + 2.8E6 * species ) * BMAGAXIS; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
 
@@ -564,11 +568,11 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	// coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
-	    	Doub energy = MI * part.vel().dot(part.vel()) / (EVTOJOULE);
+	    	Doub energy = mass * part.vel().dot(part.vel()) / (EVTOJOULE);
     		Doub mu = part.mu(BNow);
-	    	// totalEnergy    << energy << std::endl;
-	    	// magMoment      << mu << std::endl;
-	    	// std::cerr << step << std::endl;
+	    	totalEnergy    << energy << std::endl;
+	    	magMoment      << mu << std::endl;
+	    	std::cerr << step << std::endl;
 	    }
     }
 
@@ -576,8 +580,8 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 
     coordinatesRZ.close();
     // coordinatesXYZ.close();
-    // totalEnergy.close();
-    // magMoment.close();
+    totalEnergy.close();
+    magMoment.close();
     return;
 }
 
