@@ -165,7 +165,13 @@ class Orbit
 		void setPastukhov(Doub Ti, Doub Te, Doub multiplier = 1);
 
 		/**
+		 *
+		 */
+		void setTemp(Doub Ti, Doub Te);
+
+		/**
 		 * \brief calculate E field between grids points w/ finite difference.
+		 * \details Phi_ is multiplied by Te to return to (V) unit.
 		 */
 		void setEField();
 
@@ -181,7 +187,42 @@ class Orbit
 
 		//--------------------------------------------------------------------------------------------
 		//------------------------------ End of potential calculations -------------------------------
-		//---------------------------------- Start data outputting -----------------------------------
+		//--------------------------------- Start particle pushing -----------------------------------
+		//--------------------------------------------------------------------------------------------
+
+		/**
+		 * \brief TODO:Calculates appropriate time step for each initial velocity
+		 */
+		Doub timeStep(Doub vv);
+
+		/**
+		 * \brief Pushes a particle in background field
+		 * \output Writes coordinates in RZ and XYZ, energy, and mu to file
+		 * \details outputs a number every 500 steps
+		 * TODO: fix this magic number 500
+		 */
+		void particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez, Doub mult = 1);
+
+		/**
+		 * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 
+		 *                initial velocities
+		 * \return        Sum of all velocities for all particles lost to the limiter
+		 * \param orbit   Input Orbit object, carries magnetic geometry and more
+		 * \param dr      Radial location for particle loading
+		 * \param energy  Temperature of test particles (in eV), to initialize Maxwellian dist.
+		 * \param spec    Species of the particle. 0 for H, 1 for e.
+		 * \param nparts  Number of particles
+		 * \param maxiter Maximum number of iterations for each particle.
+		 * \param write   Whether to write list of initial and lost velocities to file, default to false.
+		 */
+		Doub particleStats(Doub dr, Doub energy, bool spec, int nparts, \
+			Doub Ti, Doub Te, Doub mult, int maxiter, bool write = false);
+
+
+
+		//--------------------------------------------------------------------------------------------
+		//---------------------------------- Start data outputting  ----------------------------------
+		//----------------------------------    "Orbit.write.cc"  ------------------------------------
 		//--------------------------------------------------------------------------------------------
 		
 		/** 
@@ -240,29 +281,10 @@ class Orbit
 		 */
 		void printData();
 
-		/**
-		 * \brief Pushes a particle in background field
-		 * \output Writes coordinates in RZ and XYZ, energy, and mu to file
-		 * \details outputs a number every 500 steps
-		 * TODO: fix this magic number 500
-		 */
-		void particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez, Doub mult = 1);
-
-		/**
-		 * \brief         Push particles in paralell at given midplane position, with Gaussian distributed 
-		 *                initial velocities
-		 * \return        Sum of all velocities for all particles lost to the limiter
-		 * \param orbit   Input Orbit object, carries magnetic geometry and more
-		 * \param dr      Radial location for particle loading
-		 * \param energy  Temperature of test particles (in eV), to initialize Maxwellian dist.
-		 * \param spec    Species of the particle. 0 for H, 1 for e.
-		 * \param nparts  Number of particles
-		 * \param maxiter Maximum number of iterations for each particle.
-		 * \param write   Whether to write list of initial and lost velocities to file, default to false.
-		 */
-		Doub particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult,\
-			int maxiter, bool write = false);
-
+		//--------------------------------------------------------------------------------------------
+		//--------------------------------------- Start testing   ------------------------------------
+		//----------------------------------    "Orbit.test.cc"  ------------------------------------
+		//--------------------------------------------------------------------------------------------
 
 		/**
 		 * \brief A unit testing suite
@@ -307,6 +329,7 @@ class Orbit
 	    Doub rllmtr_, rrlmtr_;
 	    Doub zllmtr_, zrlmtr_;
 	    Doub dr_, dz_;
+	    Doub Te_, Ti_;
 
 
 };

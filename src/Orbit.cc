@@ -64,7 +64,7 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
     if (!myfile.is_open()) {
     	std::cerr << "Unable to open file" << std::endl; 
     } else {
-    	std::cerr << "Uniform Grid file successfully opened" << std::endl;
+    	// std::cerr << "Uniform Grid file successfully opened" << std::endl;
     }
 
     std::string a;
@@ -83,7 +83,7 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 	myfile >> std::setprecision(10)>> nw >> nh;
 	nw_ = nw;
 	nh_ = nh;
-	std::cerr << "nw:" << nw << "nh:" << nh << std::endl;
+	// std::cerr << "nw:" << nw << "nh:" << nh << std::endl;
 
 	// initialize data containers
 	VecDoub * rGrid = new VecDoub(nw);
@@ -170,9 +170,9 @@ Orbit::Orbit(const std::string& field, const std::string& limiter)
 void Orbit::readLimiter(std::ifstream &input)
 {
 	if (!input.is_open()) {
-    	std::cerr << "Unable to open limiter file" << std::endl; 
+    	// std::cerr << "Unable to open limiter file" << std::endl; 
     } else {
-    	std::cerr << "limiter location file successfully opened" << std::endl;
+    	// std::cerr << "limiter location file successfully opened" << std::endl;
     }
 
     std::string a;
@@ -384,6 +384,7 @@ Doub Orbit::pastukhov(Doub Ti, Doub Te, Doub R)
 void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
 {
 	if (Rratio_ == nullptr) configMirror();
+	setTemp(Ti, Te);
 
 	Phi_ = new MatDoub(nw_, nh_);
 	for (int i = 0; i < nw_; ++i){
@@ -400,11 +401,16 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
     return;
 }
 
+void Orbit::setTemp(Doub Ti, Doub Te)
+{
+	Ti_ = Ti;
+	Te_ = Te; 
+}
 
 void Orbit::setEField()
 {
 	int zero(0);
-	std::cerr << "zero is: " << zero << std::endl;
+	// std::cerr << "zero is: " << zero << std::endl;
 	MatDoub * Er = new MatDoub(nw_ - 1, nh_ - 1, zero); // initialize to 0
 	MatDoub * Ez = new MatDoub(nw_ - 1, nh_ - 1, zero);
 	assert( (*Er)[1][1] == 0);
@@ -416,21 +422,21 @@ void Orbit::setEField()
 		// Doub rNow = rShift[i];
     	for (int iz = 0; iz < nh_ - 1; ++iz){
     		
-    		phiNow   = (*Phi_)[ir][iz];
-    		phiRight = (*Phi_)[ir + 1][iz];
-    		phiUp    = (*Phi_)[ir][iz + 1];
+    		phiNow   = (*Phi_)[ir][iz] * Te_;
+    		phiRight = (*Phi_)[ir + 1][iz] * Te_;
+    		phiUp    = (*Phi_)[ir][iz + 1] * Te_; // return to standard unit.
 
     		if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiRight) && phiRight != 0 ) { // r derivative is defined
 	    		dPhidR = (phiRight - phiNow) / dr_;
-	    		(*Er)[ir][iz] = dPhidR;
+	    		(*Er)[ir][iz] = -1 * dPhidR; // NEGATIVE GRADIENT
 	    	} 
 	    	if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiUp) && phiUp != 0 ){ // z derivative is defined
 	    		dPhidZ = (phiUp    - phiNow) / dz_;
-	    		(*Ez)[ir][iz] = dPhidZ;
+	    		(*Ez)[ir][iz] = -1 * dPhidZ;
 	    	} 
     	}
     }
-    std::cerr << "new zero" << (*Er)[5][5] << std::endl;
+    // std::cerr << "new zero" << (*Er)[5][5] << std::endl;
     assert( (*Er)[5][5] == 0);
     Er_ = Er; // try this
     Ez_ = Ez;
@@ -484,6 +490,11 @@ Vector Orbit::getE(const Vector& pos)
 	return gotE;
 }
 
+Doub Orbit::timeStep(Doub vv)
+{
+	return 0; // place holder for maybe when this is needed.
+}
+
 void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Doub ez, Doub mult)
 {
 	int species = spec;
@@ -500,9 +511,9 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	coordinatesRZ.open(coordRZ);
 	coordinatesRZ << std::setprecision(10);
 
-	// ofstream coordinatesXYZ;
-	// coordinatesXYZ.open(coordXYZ);
-	// coordinatesXYZ << std::setprecision(10);
+	ofstream coordinatesXYZ;
+	coordinatesXYZ.open(coordXYZ);
+	coordinatesXYZ << std::setprecision(10);
 
 	// ofstream totalEnergy;
 	// totalEnergy.open(totenergy);
@@ -513,19 +524,29 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	// magMoment << std::setprecision(10);
 
 	//prepare electric potential
-	setPastukhov(0.2, 1, mult);
+	setPastukhov(100, 100, mult);
 	setEField();
 
 	// initialize particle position
 	Vector posi(rrlmtr_ - dr, 0, zmid_);
 
+	// Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
+	// Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
+
+	Doub mass;
+	if (spec){
+		mass = ME;
+	} else {
+		mass = MI;
+	}
+
 	//initialize an hydrogen ion with energy and direction input by user;
-	Doub vr = sqrt(energy * er * EVTOJOULE / MI); // thermal velocity
-	Doub vphi = sqrt(energy * ephi * EVTOJOULE / MI);
-	Doub vz = sqrt(energy * ez * EVTOJOULE / MI);
+	Doub vr = sqrt(energy * er * EVTOJOULE / mass); // thermal velocity
+	Doub vphi = sqrt(energy * ephi * EVTOJOULE / mass);
+	Doub vz = sqrt(energy * ez * EVTOJOULE / mass);
 
     Vector veli(vr, vphi, vz);
-    Particle part(posi, veli, 0);
+    Particle part(posi, veli, spec);
 
     // A default electric field of 0;
     // Vector EField(0, 0, 0);
@@ -534,6 +555,8 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
+
+	std::cerr<< "mass" << mass << "dt" << dt << std::endl;
 
     // Doub dt = 10E-10; // keep this number for ions.
 
@@ -559,13 +582,13 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	if (step % 10 == 0){ // output every 500 steps
+    	if (step % 5 == 0){ // output every 500 steps
     	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
-	    	// coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
+	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
-	    	Doub energy = MI * part.vel().dot(part.vel()) / (EVTOJOULE);
-    		Doub mu = part.mu(BNow);
+	    	// Doub energy = MI * part.vel().dot(part.vel()) / (EVTOJOULE);
+    		// Doub mu = part.mu(BNow);
 	    	// totalEnergy    << energy << std::endl;
 	    	// magMoment      << mu << std::endl;
 	    	// std::cerr << step << std::endl;
@@ -575,17 +598,20 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     std::cerr << "program terminated after" << step << "iterations." << std::endl;
 
     coordinatesRZ.close();
-    // coordinatesXYZ.close();
+    coordinatesXYZ.close();
     // totalEnergy.close();
     // magMoment.close();
     return;
 }
 
-Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult,\
-	int maxiter, bool write)
+Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
+	Doub Ti, Doub Te, Doub mult, int maxiter, bool write)
 {
 	std::list<Vector> initVel;
 	std::list<Vector> finlVel;
+
+	std::list<Vector> initVel3;
+	std::list<Vector> finlVel3;
 
 	std::list<Doub> paraVel;
 
@@ -600,11 +626,13 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 	Doub dt = TLamor / NPERORBIT;
 
 	// //prepare electric potential
-	// setPastukhov(0.2, 1, mult);
-	// setEField();
+	setPastukhov(Ti, Te, mult);
+	setEField();
+
+	// std::cerr<< "mass" << mass << "dt" << dt << std::endl; 
 
 	// A default electric field of 0;
-    Vector EField(0, 0, 0);
+    // Vector EField(0, 0, 0);
 
 	std::default_random_engine generator(int(time(NULL)));
 
@@ -626,6 +654,11 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 
 	    std::list<Vector> initVel_private; // A list of (vpara, vperp)
 	    std::list<Vector> finlVel_private;
+
+	    std::list<Vector> initVel3_private; // A list of 3D velocity (vr, vphi, vz)
+	    std::list<Vector> finlVel3_private;
+
+
 	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
 
 		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, \
@@ -642,13 +675,14 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 			    veli = Vector(vr, vphi, vz);
 
 			    BNow = getB(posi);
-	    	    // ENow = getE(posi);
+	    	    ENow = getE(posi);
 
 			    vPara = veli.parallel(BNow);
 			    vPerp = veli.perp(BNow);
 			    vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
 
-			    initVel_private.push_back(vGC); 
+			    initVel_private.push_back(vGC);
+			    initVel3_private.push_back(veli); 
 
 			    part.setPos(posi);
 			    part.setVel(veli);
@@ -656,10 +690,10 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 			    for (int step = 0; step < maxiter; ++step){ 
 					posNow = part.pos();
 			    	BNow = getB(posNow);
-	    			// ENow = getE(posNow);
+	    			ENow = getE(posNow);
 
-			    	// part.moveCyl(ENow, BNow, dt);
-			    	part.moveCyl(EField, BNow, dt);
+			    	part.moveCyl(ENow, BNow, dt);
+			    	// part.moveCyl(EField, BNow, dt);
 
 			    	xNow = part.pos().x();
 			    	yNow = part.pos().y();
@@ -670,6 +704,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 			    	if (isLimiter(rNow, zNow)){
 			    		part.lost();
 					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
+			    		finlVel3_private.push_back(veli);
 			    		// collect the final paralell velocity here
 					    vPara = part.vel().parallel(BNow);
 					    paraVel_private.push_back(vPara.mod());
@@ -681,6 +716,10 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 			// collect everything from all threads back into the main structure
 			initVel.insert(initVel.end(), initVel_private.begin(), initVel_private.end());
 			finlVel.insert(finlVel.end(), finlVel_private.begin(), finlVel_private.end());
+
+			initVel3.insert(initVel3.end(), initVel3_private.begin(), initVel3_private.end());
+			finlVel3.insert(finlVel3.end(), finlVel3_private.begin(), finlVel3_private.end());
+
 			paraVel.insert(paraVel.end(), paraVel_private.begin(), paraVel_private.end());
 
 	}
@@ -688,24 +727,40 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, Doub mult
 	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
 	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
 
+	int species = spec;
+	std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
+	+ "_Te_" + std::to_string(Te).substr(0, 3) \
+	+ "_dr_" + std::to_string(dr).substr(0, 4) \
+	+ "_mult_" + std::to_string(mult).substr(0, 3) \
+	+ "_spec_" + std::to_string(species).substr(0, 1) \
+	+ ".out";
 
-	std::string suffix = "_E_" + std::to_string(energy).substr(0, 5) + "_dr_" \
-	+ std::to_string(dr).substr(0, 4) + ".out";
-
-	// Doub sumVel = 
 	if (write){
 		ofstream initial;
 		initial.open("output/initial" + suffix);
 		ofstream final;
 		final.open("output/final" + suffix);
+		initial << Ti << Te << std::endl;
+
+		ofstream initial3;
+		initial3.open("output/initial3" + suffix);
+		ofstream final3;
+		final3.open("output/final3" + suffix);
+
 		while (!initVel.empty()){
 			initial << initVel.front() << std::endl;
+			initial3 << initVel3.front() << std::endl;
+
 			initVel.pop_front();
+			initVel3.pop_front();
 		}	
 
 		while (!finlVel.empty()){
 			final << finlVel.front() << std::endl;
+			final3 << finlVel3.front() << std::endl;
+
 			finlVel.pop_front();
+			finlVel3.pop_front();
 		}
 	} 
 

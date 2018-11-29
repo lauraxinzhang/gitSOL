@@ -66,22 +66,23 @@ void help()
 
 int main(int argc, const char** argv)
 {
-	std::cerr << "Hello World" << std::endl << std::endl;
+	// std::cerr << "Hello World" << std::endl << std::endl;
 	// std::cout << std::setprecision(10);
 	std::cout << std::scientific;
 
-	std::cerr << "Magnetic geometry initialization: " << std::endl;
+	// std::cerr << "Magnetic geometry initialization: " << std::endl;
+
 	// read from uniform grid data file.
 	// Hard code in path for now
 	std::string field = "./input/LTX_Apr29_474-fields.dat";
-	std::cerr << "magnetic field path read < " << field << std::endl;
+	// std::cerr << "magnetic field path read < " << field << std::endl;
 
 	std::string limiter = "./input/pos_coord_invert.csv";
-	std::cerr << "limiter path read < " << limiter << std::endl;
+	// std::cerr << "limiter path read < " << limiter << std::endl;
 
 	Orbit orbit(field, limiter);
 
-	std::cerr << "Initialization successful." << std::endl << std::endl;
+	// std::cerr << "Initialization successful." << std::endl << std::endl;
 
 	// // Process command-line options
     // --argc; // Skip past 0th arg (program name)
@@ -199,12 +200,12 @@ int main(int argc, const char** argv)
     }
     else if (controller == std::string("-stat"))
     {
-    	double dr, energy, mult;
+    	double dr, energy, mult, Ti, Te;
     	bool spec;
     	int nparts, maxiter;
     	bool write;
     	// TODO implement this
-    	if (args.size() == 7){
+    	if (args.size() == 9){
     		dr = stod(args.front());
     		args.pop_front();
 
@@ -217,12 +218,18 @@ int main(int argc, const char** argv)
     		nparts = stod(args.front());
     		args.pop_front();
 
+            Ti = stod(args.front());
+            args.pop_front();
+
+            Te = stod(args.front());
+            args.pop_front();
+
     		mult = stod(args.front());
     		args.pop_front();
 
     		maxiter = stod(args.front());
     		args.pop_front();
-    		
+
     		write = stoi(args.front());
     		args.pop_front();
     	} else {
@@ -235,19 +242,26 @@ int main(int argc, const char** argv)
     		std::cin >> spec;
     		std::cerr << "Number of particles to push: " << std::endl;
     		std::cin >> nparts;
+
+            std::cerr << "Ti: " << std::endl;
+            std::cin >> Ti;
+            std::cerr << "Te: " << std::endl;
+            std::cin >> Te;
     		std::cerr << "Multiplier on potential: " << std::endl;
     		std::cin >> mult;
+
     		std::cerr << "Maximum iteration for each particle: " << std::endl;
     		std::cin >> maxiter;
     		std::cerr << "Write loss cone to file? 1 for yes, 0 for no." << std::endl;
     		std::cin >> write;
     		std::cerr << "All set." << std::endl;
     	}
-    	std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
+    	// std::cerr << "Particle successfully initialized. Pushing now." << std::endl;
 
-    	Doub gammaOut = orbit.particleStats(dr, energy, spec, nparts, mult, maxiter, write);
+    	Doub gammaOut = orbit.particleStats(dr, energy, spec, nparts, Ti, Te, mult, maxiter, write);
 
-    	std::cout << '(' << nparts << ',' << gammaOut << ")," << std::endl;
+    	// std::cout << '(' << spec << ',' << mult << ',' << nparts << ',' << gammaOut << ")," << std::endl;
+        std::cout << spec << ',' << mult << Ti << ',' << Te << ',' << ',' << nparts << ',' << gammaOut << std::endl;
 
     }
     else if (controller == std::string("-h")){
