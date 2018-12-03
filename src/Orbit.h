@@ -53,20 +53,20 @@
 
 // Numbers specific to LTX geometry
 #define BMAGAXIS  2000                   // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
-#define NPERORBIT 100                     // steps per Lamor orbit, from Boris convergence test.
+#define NPERORBIT 20                     // steps per Lamor orbit, from Boris convergence test.
 
 
 /** Choose which interpolater to use throughout the class */
 // Use these two lines to compile with linear interpolations
 
-typedef Linear_interp INTERP1D;
-typedef Bilin_interp  INTERP2D;
+// typedef Linear_interp INTERP1D;
+// typedef Bilin_interp  INTERP2D;
 
 
 // Use these two lines to compile with Spline interpolations 
 // (very slow. use only in production mode when very pretty pictures are needed)
-// typedef Spline_interp    INTERP1D;
-// typedef Spline2D_interp  INTERP2D;
+typedef Spline_interp    INTERP1D;
+typedef Spline2D_interp  INTERP2D;
 
 /**
  * \brief  

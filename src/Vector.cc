@@ -142,9 +142,9 @@ Vector Vector::parallel(Vector& right)
 	Vector result;
 
 	double modRight = right.mod();
-	double mod = this -> mod();
-	double costheta = dot(right) / (modRight * mod);
-	double magnitude = mod * costheta;
+	double norm = mod();
+	double costheta = dot(right) / (modRight * norm);
+	double magnitude = norm * costheta;
 
 	result =  right.normalize() * magnitude;
 	return result;

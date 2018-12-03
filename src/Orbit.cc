@@ -530,12 +530,6 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	// initialize particle position
 	Vector posi(rrlmtr_ - dr, 0, zmid_);
 
-	Doub mass;
-	if (spec){
-		mass = ME;
-	} else {
-		mass = MI;
-	}
 	// mass toggle
 	assert(species == 1 || species == 0);
 	Doub mass = MI * (1 - species) + ME * species;
@@ -556,12 +550,19 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
 
-	std::cerr<< "mass" << mass << "dt" << dt << std::endl;
+	Doub Binit = getB(posi).mod();
+	Doub rLamor = (2.38 * species + 102 * ( 1 - species ) ) * sqrt(energy) * 0.01 / BMAGAXIS; // in m
+	Doub rinit = rrlmtr_ - dr;
+	Doub mirrorMid = getMirrorRatio(rinit, zmid_);
+	Doub mirrorLeft = getMirrorRatio(rinit - rLamor, zmid_);
+	Doub mirrorRight = getMirrorRatio(rinit + rLamor, zmid_);
+
+	std::cerr<< "Range of R:" << mirrorLeft << "," << mirrorMid << "," << mirrorRight << std::endl;
 
     // Doub dt = 10E-10; // keep this number for ions.
 
     int step = 0;
-    for (step; step < 300000; ++step) // basically run it till it's lost
+    for (step; step < 900000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
     	Vector BNow = getB(posNow);
@@ -587,11 +588,17 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
 
+	    	Vector Bupdated = getB(posNow);
+	    	Vector Bcart;
+	    	Bupdated.cyl2Cart(part.pos(), Bcart); // convert B to cartesian vector
+
+	    	Vector vperp = part.vel().perp(Bcart);
+
 	    	Doub energy = mass * part.vel().dot(part.vel()) / (EVTOJOULE);
-    		Doub mu = part.mu(BNow);
+    		Doub mu = part.mu(Bcart);
 	    	totalEnergy    << energy << std::endl;
-	    	magMoment      << mu << std::endl;
-	    	std::cerr << step << std::endl;
+	    	magMoment      << mu << ',' << vperp.mod() << ',' << Bcart.mod() << std::endl;
+	    	// std::cerr << step << std::endl;
 	    }
     }
 
@@ -618,7 +625,8 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 
 	std::list<Doub> paraVel;
 
-	std::cerr << "mirror ratio: " << getMirrorRatio(rrlmtr_ - dr, zmid_) \
+	Doub rinit = rrlmtr_ - dr;
+	std::cerr << "mirror ratio: " << getMirrorRatio(rinit, zmid_) \
 	<< std::endl;
 
 	Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
@@ -627,6 +635,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * BMAGAXIS; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
+
 
 	// //prepare electric potential
 	setPastukhov(Ti, Te, mult);

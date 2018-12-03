@@ -184,11 +184,11 @@ void Orbit::test()
 
 	if (testVector && parallelAndPerp){
 		std::cerr << " - Testing parallel and perp" << std::endl;
-		Vector vv(-4, 3, 0);
+		Vector vv(-4, 3, -1);
 		Vector B(10, 0, 0);
 
 		Vector vpara(-4, 0, 0);
-		Vector vperp(0, 3, 0);
+		Vector vperp(0, 3, -1);
 
 		bool para = (vv.parallel(B) == vpara);
 		bool perp = (vv.perp(B) == vperp);
@@ -278,8 +278,17 @@ void Orbit::test()
 
 		Particle part(pos, vel, false);
 		double muCorrect = part.mass();
+		bool perp = (muCorrect == part.mu(B));
 
-		bool result = (muCorrect == part.mu(B));
+		Vector veldiag(1, 1, 0);
+		part.setVel(veldiag);
+		bool diag = (part.mu(B) == muCorrect); // adding a parallel shouldn't change mu
+
+		Vector velpara(1, 0, 0);
+		part.setVel(velpara);
+		bool para = (part.mu(B) == 0);
+
+		bool result = (perp && diag && para);
 		if (result){
 			std::cerr << " -- Passed" << std::endl;
 		} else {
