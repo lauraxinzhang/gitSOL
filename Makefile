@@ -17,10 +17,10 @@ clean:
 	rm -rf $(TARGETS) $(OBJECTS)
 	
 main:	$(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o main $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o main $(OBJECTS) $(LDFLAGS)
 
 Orbit.o:	$(SRCDIR)Orbit.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
-	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.cc
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.cc $(LDFLAGS)
 
 Orbit.test.o:	$(SRCDIR)Orbit.test.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.test.cc
@@ -35,4 +35,4 @@ Particle.o: $(SRCDIR)Particle.h $(SRCDIR)Particle.cc $(SRCDIR)Vector.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Particle.cc
 
 main.o: $(SRCDIR)main.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
-	$(CXX) -c $(CXXFLAGS) $(SRCDIR)main.cc
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)main.cc $(LDFLAGS)
