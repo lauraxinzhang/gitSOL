@@ -411,13 +411,12 @@ void Orbit::setEField()
 {
 	int zero(0);
 	// std::cerr << "zero is: " << zero << std::endl;
-	MatDoub * Er = new MatDoub(nw_ - 1, nh_ - 1, zero); // initialize to 0
-	MatDoub * Ez = new MatDoub(nw_ - 1, nh_ - 1, zero);
+	MatDoub * Er = new MatDoub(nw_ - 1, nh_, zero); // initialize to 0
+	MatDoub * Ez = new MatDoub(nw_, nh_ - 1, zero);
 	assert( (*Er)[1][1] == 0);
 
 	Doub phiNow, phiRight, phiUp, dPhidR, dPhidZ;
 	// calculate field
-	// TODO: r should be no problem, z will be a trouble.
 	for (int ir = 0; ir < nw_ - 1; ++ir){
 		// Doub rNow = rShift[i];
     	for (int iz = 0; iz < nh_ - 1; ++iz){
@@ -436,7 +435,25 @@ void Orbit::setEField()
 	    	} 
     	}
     }
-    // std::cerr << "new zero" << (*Er)[5][5] << std::endl;
+    // top row
+    for (int ir = 0; ir < nw_ - 1; ++ir){
+		phiNow   = (*Phi_)[ir][nh_ - 1] * Te_;
+    	phiRight = (*Phi_)[ir + 1][nh_ - 1] * Te_;
+    	if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiRight) && phiRight != 0 ) { // r derivative is defined
+    		dPhidR = (phiRight - phiNow) / dr_;
+    		(*Er)[ir][nh_ - 1] = -1 * dPhidR; // NEGATIVE GRADIENT
+    	} 
+    }
+    // right-most column
+    for (int iz = 0; iz < nh_ - 1; ++iz){
+		phiNow   = (*Phi_)[nw_ - 1][iz] * Te_;
+		phiUp    = (*Phi_)[nw_ - 1][iz + 1] * Te_; // return to standard unit.
+		if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiUp) && phiUp != 0 ){ // z derivative is defined
+    		dPhidZ = (phiUp - phiNow) / dz_;
+    		(*Ez)[nw_ - 1][iz] = -1 * dPhidZ;
+    	} 
+    }
+
     assert( (*Er)[5][5] == 0);
     Er_ = Er; // try this
     Ez_ = Ez;
