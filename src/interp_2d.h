@@ -52,7 +52,9 @@ struct Spline2D_interp {
 	NRvector<Spline_interp*> srp;
 
 	Spline2D_interp(VecDoub_I &x1v, VecDoub_I &x2v, MatDoub_I &ym)
-		: m(x1v.size()), n(x2v.size()), y(ym), yv(m), x1(x1v), srp(m) {
+		: m(x1v.size()), n(x2v.size()), y(ym), yv(m), x1(x1v), srp(m) 
+	{
+		std::cerr << "calling 2D spline constructor" << std::endl;
 		for (Int i=0;i<m;i++) srp[i] = new Spline_interp(x2v,&y[i][0]);
 	}
 
