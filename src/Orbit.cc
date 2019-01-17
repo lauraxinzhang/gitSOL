@@ -471,9 +471,11 @@ Vector Orbit::getE(const Vector& pos)
 	if (rShift_ == nullptr) setGridShift();
 	if (Er_ == nullptr) setEField();
 
+	std::cerr << "before interp" << std::endl;
 	INTERP2D fieldR((*rShift_),  (*zGrid_ ), *Er_);
 	INTERP2D fieldZ((*rGrid_ ),  (*zShift_), *Ez_);
 
+	std::cerr << "after interp" << std::endl;
 	Doub zz = pos.z();
 	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
 
@@ -481,9 +483,12 @@ Vector Orbit::getE(const Vector& pos)
 	// std::cerr << (*rShift_)[0] << std::endl;
 
 	if ( rr >= (*rShift_).front() && rr <= (*rShift_).back()){
+		std::cerr << "calling interp in r" << std::endl;
 		Er = fieldR.interp(rr, zz);
 	}
 	if ( zz >= (*zShift_).front() && zz <= (*zShift_).back()){
+		std::cerr << "calling interp in z" << std::endl;
+		
 		Ez = fieldZ.interp(rr, zz);
 	}
 	Vector gotE(Er, 0, Ez);

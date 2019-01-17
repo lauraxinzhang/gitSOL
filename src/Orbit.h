@@ -160,7 +160,7 @@ class Orbit
 
 		/**
 		 * \brief Calculates pastukhov and writes to private member Phi_
-		 * \note configMirror() is prerequired. TODO check Rmirror_ == nullptr.
+		 * \note configMirror() is prerequired.
 		 */
 		void setPastukhov(Doub Ti, Doub Te, Doub multiplier = 1);
 
@@ -317,7 +317,7 @@ class Orbit
 
 	    VecDoub * rGrid_; // r grid points
 	    VecDoub * zGrid_; // z grid points
-	    VecDoub * rShift_; // shifted grif rGrid_ + (dr_ / 2)
+	    VecDoub * rShift_; // shifted grid rGrid_ + (dr_ / 2)
 	    VecDoub * zShift_; // shifted grid zGrid_ + (dz_ / 2)
 
 	    VecDoub * rLimit_; // r coordinates of limiter
