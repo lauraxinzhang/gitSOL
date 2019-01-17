@@ -524,7 +524,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	magMoment << std::setprecision(10);
 
 	//prepare electric potential
-	setPastukhov(100, 100, mult);
+	setPastukhov(40, 100, mult);
 	setEField();
 
 	// initialize particle position
@@ -562,7 +562,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     // Doub dt = 10E-10; // keep this number for ions.
 
     int step = 0;
-    for (step; step < 900000; ++step) // basically run it till it's lost
+    for (step; step < 1500000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
     	Vector BNow = getB(posNow);
@@ -583,7 +583,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	if (step % 5 == 0){ // output every 500 steps
+    	if (step % 1000 == 0){ // output every 500 steps
     	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;

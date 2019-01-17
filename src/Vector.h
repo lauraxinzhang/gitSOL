@@ -69,7 +69,6 @@ class Vector
 
 	private:
 
-
 		double x_;
 		double y_;
 		double z_;

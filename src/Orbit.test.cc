@@ -297,22 +297,6 @@ void Orbit::test()
 
 	}
 
-	if (testEField) {
-		std::cerr << " - Testing electric field calculation" << std::endl;
-
-		setPastukhov(0.2, 1, 0); // create a uniformly zero potential
-		setEField();
-		Vector pos(rrlmtr_ - 0.06, 0, zmid_);
-		Vector eTest = getE(pos);
-
-		bool result = (eTest == Vector(0, 0, 0));
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
 	if (testPastukhov) {
 		std::cerr << " - Testing empty pastukhov calculation" << std::endl;
 
@@ -326,6 +310,22 @@ void Orbit::test()
 
 		bool result = notnull && blank;
 
+		if (result){
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+		}
+	}
+
+	if (testEField) {
+		std::cerr << " - Testing electric field calculation" << std::endl;
+
+		setPastukhov(0.2, 1, 0); // create a uniformly zero potential
+		setEField();
+		Vector pos(rrlmtr_ - 0.06, 0, zmid_);
+		Vector eTest = getE(pos);
+
+		bool result = (eTest == Vector(0, 0, 0));
 		if (result){
 			std::cerr << " -- Passed" << std::endl;
 		} else {
