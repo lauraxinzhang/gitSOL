@@ -170,11 +170,17 @@ struct Spline_interp : Base_interp
 	
 	Spline_interp(VecDoub_I &xv, VecDoub_I &yv, Doub yp1=1.e99, Doub ypn=1.e99)
 	: Base_interp(xv,&yv[0],2), y2(xv.size())
-	{sety2(&xv[0],&yv[0],yp1,ypn);}
+	{
+		std::cerr << "calling 1D spline constructor - 1" << std::endl;
+		sety2(&xv[0],&yv[0],yp1,ypn);
+	}
 
 	Spline_interp(VecDoub_I &xv, const Doub *yv, Doub yp1=1.e99, Doub ypn=1.e99)
 	: Base_interp(xv,yv,2), y2(xv.size())
-	{sety2(&xv[0],yv,yp1,ypn);}
+	{
+		std::cerr << "calling 1D spline constructor - 2" << std::endl;
+		sety2(&xv[0],yv,yp1,ypn);
+	}
 
 	void sety2(const Doub *xv, const Doub *yv, Doub yp1, Doub ypn);
 	Doub rawinterp(Int jl, Doub xv);
