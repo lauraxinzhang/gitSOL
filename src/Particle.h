@@ -11,6 +11,8 @@
 #define PARTICLE_H_INCLUDED 1
 
 #include <iostream>
+#include <time.h> // for seeding the random engine.
+#include <random>
 #include "Vector.h"
 
 /**
@@ -84,6 +86,12 @@ class Particle
     	void move(Vector& E, Vector& B, const double dt);
         void moveCyl(Vector& E, Vector& B, const double dt);
 
+        /**
+         * \brief Turn the particle pitch angle by 90 degrees
+         *
+         */
+        void scatter(Vector& B);
+
     private:
         double   mass_;
         double   charge_;
@@ -93,7 +101,7 @@ class Particle
     	bool   species_;
 
         bool   lost_; // always start with false. Change to true when limiter is reached.
-
+        std::default_random_engine generator_; // a random number generator, seeded at Particle construction;
 };
 
 #endif // PARTICLE_H_INCLUDED

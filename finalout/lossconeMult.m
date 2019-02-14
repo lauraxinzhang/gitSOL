@@ -4,8 +4,8 @@ mult_list = {'0.0','0.1','1.0'};
 
 Ti = Ti_list{2};
 Te = Te_list{1};
-mult = mult_list{3};
-spec = 1;
+mult = mult_list{1};
+spec = 0;
 
 lsize = 3;     % line size
 msize = 10;    % marker size
@@ -42,7 +42,10 @@ I = importdata(initial, ',',1);
 II = I.data;
 FI = importdata(final);
 
-R = 2.42048;
+% R = 2.42048;
+R = 2.13569;
+Rl = 2.44586;
+Rr = 1.98869;
 halfM = (1.6726219E-27 * (1 - spec) + 9.1E-31 * spec ) / 2 * 6.242E+18; %convert to eV
 
 figure(1)
@@ -60,6 +63,10 @@ plot(II(:, 1).^2 * halfM, II(:, 2).^2 * halfM,  '.', 'MarkerSize', msize, ...
 plot(FI(:, 1).^2 * halfM, FI(:, 2).^2 * halfM, '.', 'MarkerSize', msize, ...
      'Color', clr(2,:));
 plot([0, range], [0, range/(R-1)], 'LineWidth',lsize,...
+     'LineStyle', '-','Color', clr(3,:));
+plot([0, range], [0, range/(Rl-1)], 'LineWidth',lsize,...
+     'LineStyle', '-','Color', clr(3,:));
+plot([0, range], [0, range/(Rr-1)], 'LineWidth',lsize,...
      'LineStyle', '-','Color', clr(3,:));
 
 xlabel('E_{||} (eV)');
