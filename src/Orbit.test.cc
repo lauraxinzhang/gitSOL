@@ -48,8 +48,8 @@ void Orbit::test()
 	bool mover             = true;
 	bool testMu                = true;
 
-	bool testPastukhov = true;
-	bool testEField    = true;
+	bool testPastukhov = false;
+	bool testEField    = false;
 
 	// Interpolation Tests:
 	if (testInterp){
@@ -204,7 +204,7 @@ void Orbit::test()
 	}
 
 	if (testVector && turning){
-		std::cerr << " - Testing parallel and perp" << std::endl;
+		std::cerr << " - Testing vector turning" << std::endl;
 		Vector axis(1, 0, 0);
 
 		Vector vxy(2, 4, 0); // a test vector in x-y plane;
@@ -222,6 +222,7 @@ void Orbit::test()
 			std::cerr << " -- Passed" << std::endl;
 		} else {
 			std::cerr << "Something's wrong" << std::endl;
+			std::cerr << "xy turn:" << vxy.turn(axis, 1) << "should be: " << xyplus<< std::endl;
 		}
 	}
 

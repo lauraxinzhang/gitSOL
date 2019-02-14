@@ -70,7 +70,7 @@ class Vector
 		 *             angle scattering of particle velocities
 		 * \param sign The (+-) sign of the 90 degree angle.
 		 */
-		Vector turn(const Vector& axis, bool sign)
+		Vector turn(Vector& axis, bool sign);
 
 		friend std::ostream& operator<<(std::ostream &os, const Vector& v);
 

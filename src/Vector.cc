@@ -175,7 +175,7 @@ void Vector::cyl2Cart(const Vector& pos, Vector& vCart)
 	return;
 }
 
-Vector Vector::turn(const Vector& axis, bool sign)
+Vector Vector::turn(Vector& axis, bool sign)
 {
 	Vector vpara = parallel(axis);
 	Vector vperp = perp(axis);
@@ -183,11 +183,11 @@ Vector Vector::turn(const Vector& axis, bool sign)
 	// swap the perp and para to rotate 90 degrees, with randomly generated orientation given by "sign".
 	Vector newpara, newperp;
 	if (sign){
-		newpara = -1 * vperp;
+		newpara = vperp * (-1);
 		newperp = vpara;
 	} else {
 		newpara = vperp;
-		newperp = -1 * vpara;
+		newperp = vpara * (-1);
 	}
 	Vector newv = newpara + newperp;
 
