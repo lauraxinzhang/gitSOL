@@ -41,6 +41,7 @@ void Orbit::test()
 
 	bool normalize        = true;
 	bool parallelAndPerp  = true;
+	bool turning          = true;
 
 	// Particle Tests:
 	bool partInitAndAssign = true;
@@ -202,6 +203,27 @@ void Orbit::test()
 		}
 	}
 
+	if (testVector && turning){
+		std::cerr << " - Testing parallel and perp" << std::endl;
+		Vector axis(1, 0, 0);
+
+		Vector vxy(2, 4, 0); // a test vector in x-y plane;
+		Vector vxz(2, 0, 4); // a test vector in x-z plane;
+
+		Vector xyplus(-4, 2, 0);
+		Vector xyminus(4, -2, 0);
+		Vector xzplus(-4, 0, 2);
+		Vector xzminus(4, 0, -2);
+
+		bool resultxy = (vxy.turn(axis, 1) == xyplus) && (vxy.turn(axis, 0) == xyminus);
+		bool resultxz = (vxz.turn(axis, 1) == xzplus) && (vxz.turn(axis, 0) == xzminus);
+		
+		if (resultxy && resultxz){
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+		}
+	}
 
 	// Particle Tests:
 	if (testPart && partInitAndAssign){

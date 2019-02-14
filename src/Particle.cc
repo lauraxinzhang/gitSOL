@@ -24,7 +24,7 @@ Particle::Particle()
 Particle::Particle(const Vector& pos, const Vector& vel, bool spec)
 		:pos_(pos.x(), pos.y(), pos.z()),
 		 vel_(vel.x(), vel.y(), vel.z()),
-		 species_(spec),lost_(false)
+		 species_(spec),lost_(false), generator_(int(time(NULL)))
 {
 	if (species_){
 		charge_ = -1 * QE;
@@ -117,7 +117,6 @@ void Particle::move(Vector& E, Vector& B, const double dt)
 	// std::cerr << "h:" << h << std::endl;
 
 	double hMod = h.mod();
-
 	// std::cerr << "hMod:" << hMod << std::endl;
 
 	Vector s = (h * 2.0)/(1.0 + pow(hMod,2));
@@ -132,7 +131,6 @@ void Particle::move(Vector& E, Vector& B, const double dt)
 
 	vel_ = uPrime + E * qprime;
 	pos_ = pos_ + vel_ * dt; // used updated velocity
-
 	// std::cerr << pos_ << std::endl;
 	return;
 }
@@ -192,12 +190,11 @@ void Particle::moveCyl(Vector& E, Vector& B, const double dt)
 	converted to Cartesian before applied to the pusher.
 	*/
 
-
 	// Now assume that particle position and velocity vectors are in xyz
 
 	// Magnetic field is still in R, phi, Z
-	// Electric field? potential is solved in RZ plane, forcing rotational
-	// symmetry, therefore no field in phi direction. Maybe we'll keep electic
+	// Electric field is solved in RZ plane, forcing rotational
+	// symmetry, therefore no field in phi direction. We'll keep electic
 	// field in R, phi, Z coordinates too.
 
    	Vector Enew;
@@ -212,3 +209,11 @@ void Particle::moveCyl(Vector& E, Vector& B, const double dt)
    	return;
 }
 
+void Particle::scatter(Vector& B)
+{
+	std::bernoulli_distribution distribution(0.5);
+	bool sign = distribution(generator_); // choose the orientation of the new vector by random;
+	Vector newv = vel().turn(B, sign);
+	setVel(newv);
+	return;
+}

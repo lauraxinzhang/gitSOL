@@ -63,7 +63,14 @@ class Vector
 		Vector perp(Vector& right);
 
 		void cyl2Cart(const Vector&pos, Vector& vCart);
-
+		
+		/**
+		 * \brief Rotate the pitch angle of self with respect to axis by 90 degrees
+		 * \param axis The axis of projection; This is usually magnetic field B for pitch 
+		 *             angle scattering of particle velocities
+		 * \param sign The (+-) sign of the 90 degree angle.
+		 */
+		Vector turn(const Vector& axis, bool sign)
 
 		friend std::ostream& operator<<(std::ostream &os, const Vector& v);
 
