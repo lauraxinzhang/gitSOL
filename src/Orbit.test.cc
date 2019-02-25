@@ -82,9 +82,9 @@ void Orbit::test()
 
 		std::cerr << " - Testing Vector init, assignment, and '==' operators" << std::endl;
 
-		Vector v(2, 3, 5);
-		Vector v2 = v;
-		Vector v3;
+		Vector v(2, 3, 5); // Constructor
+		Vector v2 = v;     // assignment operator
+		Vector v3;         // default constructor
 		Vector v4(0,0,0);
 
 		if (v == v2 && v3 == v4){
