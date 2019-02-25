@@ -411,13 +411,12 @@ void Orbit::setEField()
 {
 	int zero(0);
 	// std::cerr << "zero is: " << zero << std::endl;
-	MatDoub * Er = new MatDoub(nw_ - 1, nh_ - 1, zero); // initialize to 0
-	MatDoub * Ez = new MatDoub(nw_ - 1, nh_ - 1, zero);
+	MatDoub * Er = new MatDoub(nw_ - 1, nh_, zero); // initialize to 0
+	MatDoub * Ez = new MatDoub(nw_, nh_ - 1, zero);
 	assert( (*Er)[1][1] == 0);
 
 	Doub phiNow, phiRight, phiUp, dPhidR, dPhidZ;
 	// calculate field
-	// TODO: r should be no problem, z will be a trouble.
 	for (int ir = 0; ir < nw_ - 1; ++ir){
 		// Doub rNow = rShift[i];
     	for (int iz = 0; iz < nh_ - 1; ++iz){
@@ -436,7 +435,25 @@ void Orbit::setEField()
 	    	} 
     	}
     }
-    // std::cerr << "new zero" << (*Er)[5][5] << std::endl;
+    // top row
+    for (int ir = 0; ir < nw_ - 1; ++ir){
+		phiNow   = (*Phi_)[ir][nh_ - 1] * Te_;
+    	phiRight = (*Phi_)[ir + 1][nh_ - 1] * Te_;
+    	if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiRight) && phiRight != 0 ) { // r derivative is defined
+    		dPhidR = (phiRight - phiNow) / dr_;
+    		(*Er)[ir][nh_ - 1] = -1 * dPhidR; // NEGATIVE GRADIENT
+    	} 
+    }
+    // right-most column
+    for (int iz = 0; iz < nh_ - 1; ++iz){
+		phiNow   = (*Phi_)[nw_ - 1][iz] * Te_;
+		phiUp    = (*Phi_)[nw_ - 1][iz + 1] * Te_; // return to standard unit.
+		if ( phiNow != 0 && !std::isnan(phiNow) && !std::isnan(phiUp) && phiUp != 0 ){ // z derivative is defined
+    		dPhidZ = (phiUp - phiNow) / dz_;
+    		(*Ez)[nw_ - 1][iz] = -1 * dPhidZ;
+    	} 
+    }
+
     assert( (*Er)[5][5] == 0);
     Er_ = Er; // try this
     Ez_ = Ez;
@@ -471,9 +488,11 @@ Vector Orbit::getE(const Vector& pos)
 	if (rShift_ == nullptr) setGridShift();
 	if (Er_ == nullptr) setEField();
 
+	std::cerr << "before interp" << std::endl;
 	INTERP2D fieldR((*rShift_),  (*zGrid_ ), *Er_);
 	INTERP2D fieldZ((*rGrid_ ),  (*zShift_), *Ez_);
 
+	std::cerr << "after interp" << std::endl;
 	Doub zz = pos.z();
 	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
 
@@ -481,9 +500,12 @@ Vector Orbit::getE(const Vector& pos)
 	// std::cerr << (*rShift_)[0] << std::endl;
 
 	if ( rr >= (*rShift_).front() && rr <= (*rShift_).back()){
+		std::cerr << "calling interp in r" << std::endl;
 		Er = fieldR.interp(rr, zz);
 	}
 	if ( zz >= (*zShift_).front() && zz <= (*zShift_).back()){
+		std::cerr << "calling interp in z" << std::endl;
+		
 		Ez = fieldZ.interp(rr, zz);
 	}
 	Vector gotE(Er, 0, Ez);
@@ -524,7 +546,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
 	magMoment << std::setprecision(10);
 
 	//prepare electric potential
-	setPastukhov(100, 100, mult);
+	setPastukhov(40, 100, mult);
 	setEField();
 
 	// initialize particle position
@@ -562,7 +584,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     // Doub dt = 10E-10; // keep this number for ions.
 
     int step = 0;
-    for (step; step < 900000; ++step) // basically run it till it's lost
+    for (step; step < 1500000; ++step) // basically run it till it's lost
     {
     	Vector posNow = part.pos();
     	Vector BNow = getB(posNow);
@@ -583,7 +605,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	if (step % 5 == 0){ // output every 500 steps
+    	if (step % 1000 == 0){ // output every 500 steps
     	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;

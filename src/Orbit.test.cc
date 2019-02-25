@@ -41,14 +41,15 @@ void Orbit::test()
 
 	bool normalize        = true;
 	bool parallelAndPerp  = true;
+	bool turning          = true;
 
 	// Particle Tests:
 	bool partInitAndAssign = true;
 	bool mover             = true;
 	bool testMu                = true;
 
-	bool testPastukhov = true;
-	bool testEField    = true;
+	bool testPastukhov = false;
+	bool testEField    = false;
 
 	// Interpolation Tests:
 	if (testInterp){
@@ -202,6 +203,28 @@ void Orbit::test()
 		}
 	}
 
+	if (testVector && turning){
+		std::cerr << " - Testing vector turning" << std::endl;
+		Vector axis(1, 0, 0);
+
+		Vector vxy(2, 4, 0); // a test vector in x-y plane;
+		Vector vxz(2, 0, 4); // a test vector in x-z plane;
+
+		Vector xyplus(-4, 2, 0);
+		Vector xyminus(4, -2, 0);
+		Vector xzplus(-4, 0, 2);
+		Vector xzminus(4, 0, -2);
+
+		bool resultxy = (vxy.turn(axis, 1) == xyplus) && (vxy.turn(axis, 0) == xyminus);
+		bool resultxz = (vxz.turn(axis, 1) == xzplus) && (vxz.turn(axis, 0) == xzminus);
+		
+		if (resultxy && resultxz){
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+			std::cerr << "xy turn:" << vxy.turn(axis, 1) << "should be: " << xyplus<< std::endl;
+		}
+	}
 
 	// Particle Tests:
 	if (testPart && partInitAndAssign){
@@ -297,22 +320,6 @@ void Orbit::test()
 
 	}
 
-	if (testEField) {
-		std::cerr << " - Testing electric field calculation" << std::endl;
-
-		setPastukhov(0.2, 1, 0); // create a uniformly zero potential
-		setEField();
-		Vector pos(rrlmtr_ - 0.06, 0, zmid_);
-		Vector eTest = getE(pos);
-
-		bool result = (eTest == Vector(0, 0, 0));
-		if (result){
-			std::cerr << " -- Passed" << std::endl;
-		} else {
-			std::cerr << "Something's wrong" << std::endl;
-		}
-	}
-
 	if (testPastukhov) {
 		std::cerr << " - Testing empty pastukhov calculation" << std::endl;
 
@@ -326,6 +333,22 @@ void Orbit::test()
 
 		bool result = notnull && blank;
 
+		if (result){
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+		}
+	}
+
+	if (testEField) {
+		std::cerr << " - Testing electric field calculation" << std::endl;
+
+		setPastukhov(0.2, 1, 0); // create a uniformly zero potential
+		setEField();
+		Vector pos(rrlmtr_ - 0.06, 0, zmid_);
+		Vector eTest = getE(pos);
+
+		bool result = (eTest == Vector(0, 0, 0));
 		if (result){
 			std::cerr << " -- Passed" << std::endl;
 		} else {
