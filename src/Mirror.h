@@ -37,6 +37,7 @@ class Mirror
 {
 	public:
 		Mirror();
+		~Mirror();
 
 	private:
 };
