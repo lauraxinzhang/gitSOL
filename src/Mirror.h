@@ -36,10 +36,42 @@
 class Mirror
 {
 	public:
-		Mirror();
+
+		Mirror(double xlim, double ylim, double zlim, double dx, double Buniform);
 		~Mirror();
 
+		/** 
+		 * \brief Calculate electric field given current position
+		 * \param pos Current position of particle
+		 *
+		 * \note Electric field assumes linearly interpolated potential.
+		 */
+		Vector getE(const Vector& pos);
+
+		/**
+		 * \brief Calculate magnetic field given current position
+		 */
+		Vector getB(const Vector& pos);
+
+		/**
+		 * \brief Return uniform magnetic field if no argument is given
+		 */
+		Vector getB();
+
 	private:
+		double Ti_;
+		double Te_;
+
+		double xlim_; // size of computation box
+		double ylim_;
+		double zlim_;
+
+		double dx_; // size of grid in x direction
+		VecDoub * xGrid_;
+
+		VecDoub * potential_; // potential is only a function of x
+
+		double Buniform_;
 };
 
 
