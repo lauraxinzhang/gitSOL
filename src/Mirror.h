@@ -37,8 +37,38 @@ class Mirror
 {
 	public:
 
+		/**
+		 * \brief A constructor for uniform magnetic field
+		 *
+		 */
 		Mirror(double xlim, double ylim, double zlim, double dx, double Buniform);
+
 		~Mirror();
+
+		/**
+		 * \brief Initializes the electric potential in the grid
+		 * \note  Initializes to 0 potential everywhere if no argument is given
+		 * 
+		 */
+		void setPotential();
+
+		/**
+		 * \brief Initializes potential grid given midplane potential
+		 */
+		void setPotential(double Rratio);
+
+		/**
+		 * \brief Find ambipolar potential at midplane given mirror ratio
+		 * \param Rratio Mirror ratio at midplane
+		 */
+		double findPhiMid(double Rratio);
+
+		/**
+		 * \brief Calculate electric field everywhere
+		 * \note  Potential grid needs to be already setup, if not, calls
+		 *        setPotential() to setup 0 potential everywhere.
+		 */
+		void setEField();
 
 		/** 
 		 * \brief Calculate electric field given current position
@@ -58,7 +88,14 @@ class Mirror
 		 */
 		Vector getB();
 
+		/**
+		 * \brief A dummy function to be called by main.cc to run the simulation.
+		 */
+		void run();
+
 	private:
+		Mirror(); // disable default constructor
+
 		double Ti_;
 		double Te_;
 
@@ -66,7 +103,7 @@ class Mirror
 		double ylim_;
 		double zlim_;
 
-		double dx_; // size of grid in x direction
+		int nx_; // size of grid in x direction
 		VecDoub * xGrid_;
 
 		VecDoub * potential_; // potential is only a function of x

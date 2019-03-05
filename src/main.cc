@@ -1,5 +1,6 @@
 // Programmer class includes
 #include "Orbit.h"
+#include "Mirror.h"
 
 
 //-----------------------------------------------------------------
@@ -263,6 +264,10 @@ int main(int argc, const char** argv)
     	// std::cout << '(' << spec << ',' << mult << ',' << nparts << ',' << gammaOut << ")," << std::endl;
         std::cout << spec << ',' << mult << Ti << ',' << Te << ',' << ',' << nparts << ',' << gammaOut << std::endl;
 
+    }
+    else if (controller == std::string("-straight")){
+        Mirror mirror();
+        mirror.run();
     }
     else if (controller == std::string("-h")){
     	help();
