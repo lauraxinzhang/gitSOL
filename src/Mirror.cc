@@ -112,8 +112,18 @@ Vector Mirror::getB()
 	return result;
 }
 
-void Mirror::run()
+void Mirror::run(bool spec, double vx, double vy, double vz)
 {
-	// Push one particle for testing
+	// double mass = MI * (1 - spec) + ME * spec;
+
+	// //initialize an hydrogen ion with energy and direction input by user;
+	// double vx = sqrt(energy * ex * EVTOJOULE / mass); // thermal velocity
+	// double vy = sqrt(energy * ey * EVTOJOULE / mass);
+	// double vz = sqrt(energy * ez * EVTOJOULE / mass);
+
+ //    Vector veli(vx, vy, vz);
+ //    Vector posi(0.4 * xlim_ , 0, 0);
+
+ //    Particle part(posi, veli, spec);
 	return;
 }
