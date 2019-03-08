@@ -80,9 +80,8 @@ Pusher<T>::~Pusher()
 template <class T>
 Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, std::ofstream& coord)
 {
-	coord.open("coordinates.out");
-	coord << std::setprecision(10);
-
+	//coord.open("coordinates.out");
+	//coord << std::setprecision(10);
 	for (int i = 0; i < iter; i++){
 		Vector posNow = part.pos();
     	Vector BNow = (*geo_).getB(posNow);
@@ -96,7 +95,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     		break;
     	}
 
-    	if (write && (i % 5 == 0)){
+    	if (write && (i % 1 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
@@ -138,17 +137,20 @@ void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
 	std::default_random_engine generator(int(time(NULL)));
 	std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
 
-	for (int isource = 0; isource < nsources; i++){
+	for (int isource = 0; isource < nsources; isource++){
 		double yRand = distribution(generator);
 		double zRand = distribution(generator);
-		double xCalc = sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+		double xCalc = -1*sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
 
 		Vector posi(xCalc, yRand, zRand);
-		Vector veli(radius - x, -1 * y, -1 * z);
+		Vector veli((-1*xCalc + radius),-1* yRand, -1*zRand);
+
+		std::cerr << posi << std::endl;
+		std::cerr << veli << std::endl;
 
 		Particle part(posi, veli, 1, 0); // one particle per source for now
 
-		pushSingle(part, 0.1, 100, 1, coord);
+		pushSingle(part, 0.01, 1000, 1, coord);
 	}
 
 	return;
