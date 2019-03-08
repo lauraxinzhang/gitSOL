@@ -44,7 +44,7 @@ class Mirror
 		 * \brief A constructor for uniform magnetic field
 		 *
 		 */
-		Mirror(double xlim, double ylim, double zlim, double dx, double Buniform);
+		Mirror(double xlim, double ylim, double zlim, int nx, double Buniform);
 
 		~Mirror();
 

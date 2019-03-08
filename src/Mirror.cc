@@ -8,6 +8,7 @@
  *
  *  
  */
+
 #include "Mirror.h"
 
 Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
@@ -57,7 +58,7 @@ void Mirror::setPotential(double Rratio)
 {
 	double phiMid = findPhiMid(Rratio);
 
-	VecDoub * newgrid = new VecDoub(nx);
+	VecDoub * newgrid = new VecDoub(nx_);
 	int imid = (nx_ - 1) / 2;
 
 	(*newgrid)[imid] = phiMid;
@@ -125,5 +126,6 @@ void Mirror::run(bool spec, double vx, double vy, double vz)
  //    Vector posi(0.4 * xlim_ , 0, 0);
 
  //    Particle part(posi, veli, spec);
+	//
 	return;
 }
