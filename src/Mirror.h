@@ -16,6 +16,7 @@
 #include <iomanip>
 #include <cmath> 
 #include <stdexcept>
+#include <cassert>
 
 // Programmer class includes
 #include "Vector.h"
