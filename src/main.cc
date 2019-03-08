@@ -273,7 +273,7 @@ int main(int argc, const char** argv)
 	Vector veli(0.5, 0, 0);
 	Particle part(posi, veli, 1, 0); // a neutral H atom
 	
-	pusher.pushSingle(part, 0.1, 105, 1);
+	pusher.pushSingle(part, 0.1, 120, 1);
     }
     else if (controller == std::string("-h")){
     	help();

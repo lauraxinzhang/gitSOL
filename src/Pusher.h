@@ -29,7 +29,7 @@ template <class T> // templated to be used with Orbit or Mirror class geometry
 class Pusher{
 
 	public:
-		Pusher(const T& geo);
+		Pusher(T& geo);
 		~Pusher();
 
 		/**
@@ -53,17 +53,17 @@ class Pusher{
 };
 
 template <class T>
-Pusher<T>::Pusher(const T& geo)
+Pusher<T>::Pusher(T& geo)
 		:geo_(nullptr)
 {
-	geo_ = geo;
+	geo_ = &geo;
 	return;
 }
 
 template <class T>
 Pusher<T>::~Pusher()
 {
-	delete geo_;
+	//delete geo_;
 	return;
 }
 
@@ -87,7 +87,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write)
     		break;
     	}
 
-    	if (write && (i % 100 == 0)){
+    	if (write && (i % 5 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
