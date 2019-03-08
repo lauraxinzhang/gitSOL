@@ -39,13 +39,23 @@ class Pusher{
 		 * \param iter Number of iterations
 		 * \bool write Whether the trajectory should be written to file
 		 */
-		Vector pushSingle(Particle& part, double dt, int iter, bool write);
+		Vector pushSingle(Particle& part, double dt, int iter, bool write, std::ofstream& coord);
 
 		/**
 		 * \brief Single particle pusher in cylindrical geometry
 		 * \note only part.move is changed for now. Maybe there's more?
 		 */
-		Vector pushSingleCyl(Particle& part, double dt, int iter, bool write);
+		Vector pushSingleCyl(Particle& part, double dt, int iter, bool write, std::ofstream& coord);
+
+		// functions for NBI simulations
+
+		/**
+		 * \brief burst out particles from spherical surface
+		 * \param radius Radius of curvature for surface source
+		 */
+		void gridBurst(double radius, double ylim, int nsources, bool write);
+
+		// void conicBurst(Vector& pos, Vector norm, double dtheta);
 
 	private:
 		T * geo_; // a pointer to the geometry class object
@@ -68,9 +78,8 @@ Pusher<T>::~Pusher()
 }
 
 template <class T>
-Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write)
+Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, std::ofstream& coord)
 {
-	std::ofstream coord;
 	coord.open("coordinates.out");
 	coord << std::setprecision(10);
 
@@ -96,12 +105,8 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write)
 }
 
 template <class T>
-Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write)
+Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write, std::ofstream& coord)
 {
-	std::ofstream coord;
-	coord.open("coordinates.out");
-	coord << std::setprecision(10);
-
 	for (int i = 0; i < iter; i++){
 		Vector posNow = part.pos();
     	Vector BNow = (*geo_).getB(posNow);
@@ -123,6 +128,30 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write)
 	return part.pos();
 }
 
+template <class T>
+void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
+{
+	std::ofstream coord;
+	coord.open("coordBurst.out");
+	coord << std::setprecision(10);
 
+	std::default_random_engine generator(int(time(NULL)));
+	std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
+
+	for (int isource = 0; isource < nsources; i++){
+		double yRand = distribution(generator);
+		double zRand = distribution(generator);
+		double xCalc = sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+
+		Vector posi(xCalc, yRand, zRand);
+		Vector veli(radius - x, -1 * y, -1 * z);
+
+		Particle part(posi, veli, 1, 0); // one particle per source for now
+
+		pushSingle(part, 0.1, 100, 1, coord);
+	}
+
+	return;
+}
 
 #endif // PUSHER_H_INCLUDED
