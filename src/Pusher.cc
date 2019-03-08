@@ -26,7 +26,7 @@ Pusher::~Pusher()
 
 Vector Pusher::pushSingle(Particle& part, double dt, int iter, bool write)
 {
-	ofstream coord;
+	std::ofstream coord;
 	coord.open("coordinates.out");
 	coord << std::setprecision(10);
 
