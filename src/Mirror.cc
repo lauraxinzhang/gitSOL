@@ -112,7 +112,7 @@ Vector Mirror::getB()
 	return result;
 }
 
-bool isLimiter(const Vector& pos)
+bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
 	if (pos.x() >= xlim_ && abs(pos.y()) >= ylim_ && abs(pos.z()) >= zlim_){

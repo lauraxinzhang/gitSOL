@@ -16,6 +16,11 @@
 #include <cmath> 
 #include <stdexcept>
 #include <cassert>
+#include <sstream>
+#include <fstream>
+
+#include "Particle.h"
+#include "Vector.h"
 
 template <class T> // templated to be used with Orbit or Mirror class geometry
 class Pusher{
