@@ -112,6 +112,15 @@ Vector Mirror::getB()
 	return result;
 }
 
+bool isLimiter(const Vector& pos)
+{
+	bool result = false;
+	if (pos.x() >= xlim_ && abs(pos.y()) >= ylim_ && abs(pos.z()) >= zlim_){
+		result = true;
+	}
+	return result;
+}
+
 void Mirror::run()
 {
 	// double mass = MI * (1 - spec) + ME * spec;

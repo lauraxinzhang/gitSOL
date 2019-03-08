@@ -93,6 +93,11 @@ class Mirror
 		Vector getB();
 
 		/**
+		 * \brief Check whether pos is beyond the computation box.
+		 */
+		bool isLimiter(const Vector& pos);
+
+		/**
 		 * \brief A dummy function to be called by main.cc to run the simulation.
 		 */
 		void run();
@@ -103,9 +108,9 @@ class Mirror
 		double Ti_;
 		double Te_;
 
-		double xlim_; // size of computation box
-		double ylim_;
-		double zlim_;
+		double xlim_; // size of computation box (0, xlim_)
+		double ylim_; // (-ylim_, ylim)
+		double zlim_; // (-zlim_, zlim)
 
 		int nx_; // size of grid in x direction
 		VecDoub * xGrid_;
