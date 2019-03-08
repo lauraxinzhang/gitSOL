@@ -31,9 +31,6 @@ Orbit.write.o:	$(SRCDIR)Orbit.write.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCD
 Mirror.o:	$(SRCDIR)Mirror.cc $(SRCDIR)Mirror.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Mirror.cc $(LDFLAGS)
 
-Pusher.o:	$(SRCDIR)Pusher.cc $(SRCDIR)Pusher.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
-	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Pusher.cc $(LDFLAGS)
-
 Vector.o:	$(SRCDIR)Vector.h $(SRCDIR)Vector.cc
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Vector.cc
 
