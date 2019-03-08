@@ -21,6 +21,9 @@
 #include "Vector.h"
 #include "Particle.h"
 
+// Numerical Recipe routines includes
+#include "nr3.h"
+
 // Physical contants. Don't change unless you find the value to be wrong.
 // TODO: if both Orbit and Mirror are compiled, are these repeated defs going to give problems?
 

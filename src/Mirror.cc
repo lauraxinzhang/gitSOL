@@ -8,7 +8,7 @@
  *
  *  
  */
-
+#include "Mirror.h"
 
 Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
 		: Ti_(Ti), Te_(Te),
