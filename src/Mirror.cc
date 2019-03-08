@@ -12,8 +12,7 @@
 #include "Mirror.h"
 
 Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
-		: Ti_(Ti), Te_(Te),
-		  xlim_(xlim), ylim_(ylim), zlim_(zlim), nx_(nx), 
+		: xlim_(xlim), ylim_(ylim), zlim_(zlim), nx_(nx), 
 		  xGrid_(nullptr), potential_(nullptr),
 		  Buniform_(Buniform)
 {
@@ -46,7 +45,7 @@ Mirror::~Mirror()
 
 void Mirror::setPotential()
 {
-	VecDoub * newgrid = new VecDoub(nx);
+	VecDoub * newgrid = new VecDoub(nx_);
 	for (int i = 0; i < nx_; i++){
 		(*newgrid)[i] = 0;
 	}
@@ -62,12 +61,12 @@ void Mirror::setPotential(double Rratio)
 	int imid = (nx_ - 1) / 2;
 
 	(*newgrid)[imid] = phiMid;
-	dphi = (phiMid / 2) / (nx_ - 1);
+	double dphi = (phiMid / 2) / (nx_ - 1);
 
 	for (int i = imid; i >= 0; i--){
 		// linear profile for now
 		(*newgrid)[i]          = (*newgrid)[i + 1] - dphi; // points to the left of iMid
-		(*newgrid)[nx - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
+		(*newgrid)[nx_ - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
 	}
 	assert((*newgrid)[0] == (*newgrid)[nx_ - 1]); // ensure potential is symetric
 	potential_ = newgrid;
@@ -96,14 +95,14 @@ double Mirror::findPhiMid(double Rratio)
 Vector Mirror::getE(const Vector& pos)
 {
 	//TODO implement this
-	Vector result();
+	Vector result;
 	return result;
 }
 
 Vector Mirror::getB(const Vector& pos)
 {
 	double x = pos.x();
-	Vector result();
+	Vector result;
 	return result;
 }
 
@@ -113,7 +112,7 @@ Vector Mirror::getB()
 	return result;
 }
 
-void Mirror::run(bool spec, double vx, double vy, double vz)
+void Mirror::run()
 {
 	// double mass = MI * (1 - spec) + ME * spec;
 
