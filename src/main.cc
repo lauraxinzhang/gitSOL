@@ -266,7 +266,7 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        Mirror mirror();
+        Mirror mirror;
         mirror.run();
     }
     else if (controller == std::string("-h")){
