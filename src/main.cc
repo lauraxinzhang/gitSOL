@@ -1,7 +1,7 @@
 // Programmer class includes
 #include "Orbit.h"
 #include "Mirror.h"
-
+#include "Pusher.h"
 
 //-----------------------------------------------------------------
 //------------------------- Housekeeping --------------------------
@@ -266,8 +266,14 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        Mirror mirror(5, 2, 2, 201, 0);
-        mirror.run();
+        Mirror mirror(5, 0.15, 0.15, 201, 0);
+        Pusher<Mirror> pusher(mirror); // construct a Pusher object
+	
+	Vector posi(0, 0, 0);
+	Vector veli(0.5, 0, 0);
+	Particle part(posi, veli, 1, 0); // a neutral H atom
+	
+	pusher.pushSingle(part, 0.1, 105, 1);
     }
     else if (controller == std::string("-h")){
     	help();

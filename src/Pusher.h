@@ -8,8 +8,8 @@
  *  
  */
 
-#ifndef MIRROR_H_INCLUDED
-#define MIRROR_H_INCLUDED 1
+#ifndef PUSHER_H_INCLUDED
+#define PUSHER_H_INCLUDED 1
 
 #include <iostream>
 #include <iomanip>
@@ -21,6 +21,9 @@
 
 #include "Particle.h"
 #include "Vector.h"
+#include "Orbit.h"
+#include "Particle.h"
+
 
 template <class T> // templated to be used with Orbit or Mirror class geometry
 class Pusher{
@@ -50,4 +53,4 @@ class Pusher{
 };
 
 
-#endif // MIRROR_H_INCLUDED
+#endif // PUSHER_H_INCLUDED
