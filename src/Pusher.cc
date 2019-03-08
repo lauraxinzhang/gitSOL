@@ -11,20 +11,22 @@
 #include "Pusher.h"
 
 template <class T>
-Pusher::Pusher(const T& geo)
+Pusher<T>::Pusher(const T& geo)
 		:geo_(nullptr)
 {
 	geo_ = geo;
 	return;
 }
 
-Pusher::~Pusher()
+template <class T>
+Pusher<T>::~Pusher()
 {
 	delete geo_;
 	return;
 }
 
-Vector Pusher::pushSingle(Particle& part, double dt, int iter, bool write)
+template <class T>
+Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write)
 {
 	std::ofstream coord;
 	coord.open("coordinates.out");
@@ -32,18 +34,18 @@ Vector Pusher::pushSingle(Particle& part, double dt, int iter, bool write)
 
 	for (int i = 0; i < iter; i++){
 		Vector posNow = part.pos();
-    	Vector BNow = getB(posNow);
-    	Vector ENow = getE(posNow);
+    	Vector BNow = (*geo_).getB(posNow);
+    	Vector ENow = (*geo_).getE(posNow);
 
     	part.move(ENow, BNow, dt);
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
-    		std::cerr << "particle lost to limiter after" << step \
+    		std::cerr << "particle lost to limiter after" << i \
     		<< "iterations." << std::endl;
     		break;
     	}
 
-    	if (write && (step % 100 == 0)){
+    	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
@@ -51,29 +53,31 @@ Vector Pusher::pushSingle(Particle& part, double dt, int iter, bool write)
 	return part.pos();
 }
 
-Vector Pusher::pushSingleCyl(Particle& part, double dt, int iter, bool write)
+template <class T>
+Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write)
 {
-	ofstream coord;
+	std::ofstream coord;
 	coord.open("coordinates.out");
 	coord << std::setprecision(10);
 
 	for (int i = 0; i < iter; i++){
 		Vector posNow = part.pos();
-    	Vector BNow = getB(posNow);
-    	Vector ENow = getE(posNow);
+    	Vector BNow = (*geo_).getB(posNow);
+    	Vector ENow = (*geo_).getE(posNow);
 
     	part.moveCyl(ENow, BNow, dt);
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
-    		std::cerr << "particle lost to limiter after" << step \
+    		std::cerr << "particle lost to limiter after" << i \
     		<< "iterations." << std::endl;
     		break;
     	}
 
-    	if (write && (step % 100 == 0)){
+    	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
 
 	return part.pos();
 }
+
