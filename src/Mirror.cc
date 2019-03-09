@@ -116,9 +116,11 @@ Vector Mirror::getB()
 bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
+	// case 1 : hits the limit of computation box
 	if (pos.x() >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
 		result = true;
 	}
+	// case 2: Beam scraper
 	return result;
 }
 
