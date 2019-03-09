@@ -189,20 +189,21 @@ template <class T>
 void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsources, int partPerS, bool write)
 {
 	std::ofstream conic;
-	coord.open("conicBurst.out");
-	coord << std::setprecision(10);
+	conic.open("conicBurst.out");
+	conic << std::setprecision(10);
 
 	std::default_random_engine generator(int(time(NULL))); // initialize outside loop to avoid overseeding
 	
 	// std::uniform_real_distribution<double> location(-1 * ylim, ylim); // for particle sources
 	// std::normal_distribution<double> pitchAngle(0, dtheta);
 
-	for (int iS = 0; iS < nsources, iS++){
+	for (int iS = 0; iS < nsources; iS++){
 		Vector posi = sphere(radius, ylim, generator);
 
 		for (int n = 0; n < partPerS; n++){
 			Vector veli = diverge(radius, posi, dtheta, generator);
-			
+			std::cerr << posi << std::endl;
+			std::cerr << veli << std::endl;
 			Particle part(posi, veli, 1, 0);
 			pushSingle(part, 0.01, 1000, write, conic);
 		}
@@ -242,7 +243,7 @@ Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::defaul
 	std::normal_distribution<double> pitchAngle(0, dtheta);
 	std::uniform_real_distribution<double> uni(0, 1);
 
-	Vector posNorm = pos.normailize();
+	Vector posNorm = pos.normalize();
 	double x0 = posNorm.x();
 	double y0 = posNorm.y();
 	double z0 = posNorm.z();
@@ -252,10 +253,10 @@ Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::defaul
 	double a = (radius * x0 - b * y0 - c * z0) / (x0 - radius);
 
 	Vector tangent(a - x0, b - y0, c - z0); // a randomly generated vector tangent to sphere at pos
-	Vector velNorm = sphereNormal(radius, pos).normailize(); // normal vector of sphere at pos
+	Vector velNorm = sphereNormal(radius, pos).normalize(); // normal vector of sphere at pos
 
 	double theta = pitchAngle(generator);
-	Vector vperp = tangent.normailize() * tan(theta);
+	Vector vperp = tangent.normalize() * tan(theta);
 
 	Vector result = velNorm + vperp;
 
