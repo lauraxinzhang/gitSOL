@@ -35,6 +35,15 @@ Particle::Particle(const Vector& pos, const Vector& vel, bool spec)
 	}
 }
 
+Particle::Particle(const Vector& pos, const Vector& vel, int mass, int charge)
+		:mass_(mass * MI), charge_(charge * QE),
+		 pos_(pos.x(), pos.y(), pos.z()),
+		 vel_(vel.x(), vel.y(), vel.z()),
+		 lost_(false), generator_(int(time(NULL)))
+{
+
+}
+
 Vector Particle::pos() const
 {
 	return pos_;

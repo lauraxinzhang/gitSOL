@@ -16,10 +16,14 @@
 #include <iomanip>
 #include <cmath> 
 #include <stdexcept>
+#include <cassert>
 
 // Programmer class includes
 #include "Vector.h"
 #include "Particle.h"
+
+// Numerical Recipe routines includes
+#include "nr3.h"
 
 // Physical contants. Don't change unless you find the value to be wrong.
 // TODO: if both Orbit and Mirror are compiled, are these repeated defs going to give problems?
@@ -41,7 +45,7 @@ class Mirror
 		 * \brief A constructor for uniform magnetic field
 		 *
 		 */
-		Mirror(double xlim, double ylim, double zlim, double dx, double Buniform);
+		Mirror(double xlim, double ylim, double zlim, int nx, double Buniform);
 
 		~Mirror();
 
@@ -89,6 +93,11 @@ class Mirror
 		Vector getB();
 
 		/**
+		 * \brief Check whether pos is beyond the computation box.
+		 */
+		bool isLimiter(const Vector& pos);
+
+		/**
 		 * \brief A dummy function to be called by main.cc to run the simulation.
 		 */
 		void run();
@@ -99,9 +108,9 @@ class Mirror
 		double Ti_;
 		double Te_;
 
-		double xlim_; // size of computation box
-		double ylim_;
-		double zlim_;
+		double xlim_; // size of computation box (0, xlim_)
+		double ylim_; // (-ylim_, ylim)
+		double zlim_; // (-zlim_, zlim)
 
 		int nx_; // size of grid in x direction
 		VecDoub * xGrid_;

@@ -9,10 +9,10 @@
  *  
  */
 
+#include "Mirror.h"
 
 Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
-		: Ti_(Ti), Te_(Te),
-		  xlim_(xlim), ylim_(ylim), zlim_(zlim), nx_(nx), 
+		: xlim_(xlim), ylim_(ylim), zlim_(zlim), nx_(nx), 
 		  xGrid_(nullptr), potential_(nullptr),
 		  Buniform_(Buniform)
 {
@@ -45,7 +45,7 @@ Mirror::~Mirror()
 
 void Mirror::setPotential()
 {
-	VecDoub * newgrid = new VecDoub(nx);
+	VecDoub * newgrid = new VecDoub(nx_);
 	for (int i = 0; i < nx_; i++){
 		(*newgrid)[i] = 0;
 	}
@@ -57,16 +57,16 @@ void Mirror::setPotential(double Rratio)
 {
 	double phiMid = findPhiMid(Rratio);
 
-	VecDoub * newgrid = new VecDoub(nx);
+	VecDoub * newgrid = new VecDoub(nx_);
 	int imid = (nx_ - 1) / 2;
 
 	(*newgrid)[imid] = phiMid;
-	dphi = (phiMid / 2) / (nx_ - 1);
+	double dphi = (phiMid / 2) / (nx_ - 1);
 
 	for (int i = imid; i >= 0; i--){
 		// linear profile for now
 		(*newgrid)[i]          = (*newgrid)[i + 1] - dphi; // points to the left of iMid
-		(*newgrid)[nx - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
+		(*newgrid)[nx_ - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
 	}
 	assert((*newgrid)[0] == (*newgrid)[nx_ - 1]); // ensure potential is symetric
 	potential_ = newgrid;
@@ -96,14 +96,14 @@ void Mirror::setEField()
 Vector Mirror::getE(const Vector& pos)
 {
 	//TODO implement this
-	Vector result();
+	Vector result;
 	return result;
 }
 
 Vector Mirror::getB(const Vector& pos)
 {
 	double x = pos.x();
-	Vector result();
+	Vector result;
 	return result;
 }
 
@@ -113,8 +113,28 @@ Vector Mirror::getB()
 	return result;
 }
 
+bool Mirror::isLimiter(const Vector& pos)
+{
+	bool result = false;
+	if (pos.x() >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
+		result = true;
+	}
+	return result;
+}
+
 void Mirror::run()
 {
-	// Push one particle for testing
+	// double mass = MI * (1 - spec) + ME * spec;
+
+	// //initialize an hydrogen ion with energy and direction input by user;
+	// double vx = sqrt(energy * ex * EVTOJOULE / mass); // thermal velocity
+	// double vy = sqrt(energy * ey * EVTOJOULE / mass);
+	// double vz = sqrt(energy * ez * EVTOJOULE / mass);
+
+ //    Vector veli(vx, vy, vz);
+ //    Vector posi(0.4 * xlim_ , 0, 0);
+
+ //    Particle part(posi, veli, spec);
+	//
 	return;
 }
