@@ -73,6 +73,15 @@ void Mirror::setPotential(double Rratio)
 	return;
 }
 
+
+double Mirror::findPhiMid(double Rratio)
+{
+	//TODO: implement this root finding goes here
+	double result(0); //place holder
+
+	return result;
+}
+
 void Mirror::setEField()
 {
 	if (potential_ == nullptr){
@@ -83,14 +92,6 @@ void Mirror::setEField()
 	return;
 }
 
-
-double Mirror::findPhiMid(double Rratio)
-{
-	//TODO: implement this
-	double result(0); //place holder
-
-	return result;
-}
 
 Vector Mirror::getE(const Vector& pos)
 {
@@ -115,9 +116,11 @@ Vector Mirror::getB()
 bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
+	// case 1 : hits the limit of computation box
 	if (pos.x() >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
 		result = true;
 	}
+	// case 2: Beam scraper
 	return result;
 }
 
