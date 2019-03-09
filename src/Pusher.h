@@ -114,7 +114,7 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
     	part.moveCyl(ENow, BNow, dt);
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
-    		std::cerr << "particle lost to limiter after" << i \
+    		//std::cerr << "particle lost to limiter after" << i \
     		<< "iterations." << std::endl;
     		break;
     	}
@@ -140,13 +140,16 @@ void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
 	for (int isource = 0; isource < nsources; isource++){
 		double yRand = distribution(generator);
 		double zRand = distribution(generator);
+		while (yRand * yRand + zRand * zRand >= ylim * ylim){
+			zRand = distribution(generator);
+		}	
 		double xCalc = -1*sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
 
 		Vector posi(xCalc, yRand, zRand);
 		Vector veli((-1*xCalc + radius),-1* yRand, -1*zRand);
 
-		std::cerr << posi << std::endl;
-		std::cerr << veli << std::endl;
+		//std::cerr << posi << std::endl;
+		//std::cerr << veli << std::endl;
 
 		Particle part(posi, veli, 1, 0); // one particle per source for now
 
