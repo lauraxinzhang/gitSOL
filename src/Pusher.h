@@ -212,16 +212,16 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 }
 
 template <class T>
-Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine generator)
+Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine& generator)
 {
 	std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
 
 	double yRand = distribution(generator);	
 	double zRand = distribution(generator);
 	while (yRand * yRand + zRand * zRand >= ylim * ylim){
-               zRand = distribution(generator);
-        }
-	double xCalc = -1*sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+        zRand = distribution(generator);
+    }
+	double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
 
 	Vector posi(xCalc, yRand, zRand);
 	return posi;
@@ -238,7 +238,7 @@ Vector Pusher<T>::sphereNormal(double radius, Vector pos)
 }
 
 template <class T>
-Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::default_random_engine generator)
+Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::default_random_engine& generator)
 {
 	std::normal_distribution<double> pitchAngle(0, dtheta);
 	std::uniform_real_distribution<double> uni(0, 1);
