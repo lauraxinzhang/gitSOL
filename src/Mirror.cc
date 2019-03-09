@@ -73,6 +73,15 @@ void Mirror::setPotential(double Rratio)
 	return;
 }
 
+
+double Mirror::findPhiMid(double Rratio)
+{
+	//TODO: implement this root finding goes here
+	double result(0); //place holder
+
+	return result;
+}
+
 void Mirror::setEField()
 {
 	if (potential_ == nullptr){
@@ -83,14 +92,6 @@ void Mirror::setEField()
 	return;
 }
 
-
-double Mirror::findPhiMid(double Rratio)
-{
-	//TODO: implement this
-	double result(0); //place holder
-
-	return result;
-}
 
 Vector Mirror::getE(const Vector& pos)
 {
