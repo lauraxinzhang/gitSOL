@@ -72,7 +72,7 @@ class Pusher{
 		 * \brief Generate a random pos vector on sphere surface
 		 * \note  Assumes that the canter of the sphere is at (radius, 0, 0)
 		 */
-		Vector sphere(double radius, double ylim, std::default_random_engine generator);
+		Vector sphere(double radius, double ylim, std::default_random_engine& generator);
 
 
 		/**
@@ -88,7 +88,7 @@ class Pusher{
 		 *         then add to normal vector to find the diverged vector.
 		 *
 		 */
-		Vector diverge(double radius, Vector& pos, double dtheta, std::default_random_engine generator);
+		Vector diverge(double radius, Vector& pos, double dtheta, std::default_random_engine& generator);
 
 	private:
 		T * geo_; // a pointer to the geometry class object
@@ -202,8 +202,8 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 
 		for (int n = 0; n < partPerS; n++){
 			Vector veli = diverge(radius, posi, dtheta, generator);
-			std::cerr << posi << std::endl;
-			std::cerr << veli << std::endl;
+			//std::cerr << posi << std::endl;
+			//std::cerr << veli << std::endl;
 			Particle part(posi, veli, 1, 0);
 			pushSingle(part, 0.01, 1000, write, conic);
 		}
