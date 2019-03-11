@@ -17,6 +17,8 @@
 #include <cmath> 
 #include <stdexcept>
 #include <cassert>
+#include <fstream>
+#include <string>
 
 // Programmer class includes
 #include "Vector.h"
@@ -96,6 +98,21 @@ class Mirror
 		 * \brief Check whether pos is beyond the computation box.
 		 */
 		bool isLimiter(const Vector& pos);
+		
+		/**
+		 * \brief Check whether the particle is crossing a sightline, return the index of that sightline
+		 * \return Index of sightline that Vector pos is on; 0 if not on any sightlines
+		 */
+		int sightline(const Vector& pos);
+
+		/**
+		 * \brief Parse input sightline definitions
+		 *
+		 * \param inputSL a string that includes the to the input file
+		 */
+		void setSightlines(const std::string& inputSL, int rows);
+
+		// void writeSightlines(int slIndex, Vector& vel);
 
 		/**
 		 * \brief A dummy function to be called by main.cc to run the simulation.
@@ -105,8 +122,8 @@ class Mirror
 	private:
 		Mirror(); // disable default constructor
 
-		double Ti_;
-		double Te_;
+		double Ti_;  //default constructed
+		double Te_;  //default constructed
 
 		double xlim_; // size of computation box (0, xlim_)
 		double ylim_; // (-ylim_, ylim)
@@ -118,6 +135,8 @@ class Mirror
 		VecDoub * potential_; // potential is only a function of x
 
 		double Buniform_;
+
+		std::vector<double> sightlines_; //default constructed
 };
 
 

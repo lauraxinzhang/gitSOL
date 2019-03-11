@@ -268,12 +268,6 @@ int main(int argc, const char** argv)
     else if (controller == std::string("-straight")){
         Mirror mirror(5, 0.15, 0.15, 201, 0); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
-	
-	// Vector posi(0, 0, 0);
-	// Vector veli(0.5, 0, 0);
-	// Particle part(posi, veli, 1, 0); // a neutral H atom
-	
-	// pusher.pushSingle(part, 0.1, 120, 1);
 
         // pusher.gridBurst(1.8, 0.116, 200, 1);
         pusher.conicBurst(1.8, 0.116, 0.02, 100, 200, 1);

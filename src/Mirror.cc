@@ -124,6 +124,72 @@ bool Mirror::isLimiter(const Vector& pos)
 	return result;
 }
 
+int Mirror::sightline(const Vector& pos)
+{
+	std::string prefix  = "./SLoutput/sl";
+	std::string suffix  = ".out";
+	ofstream output;
+
+	if (sightlines_.size() == 0){
+		std::string path = "./input/viewlineBL.csv";
+		setSightlines(path, 26);
+	}
+
+	if ( abs( pos.z() ) < 0.008 ){ // pos is in the plane of the sightlines
+
+		for (i = 0; i < 26; i++){
+			double slope  = sightlines_[2 * i];
+			double yinter = sightlines_[2 * i + 1];
+
+			double yexpect = slope * pos.x() + yinter;
+
+			if ( abs( yexpect - pos.y() ) < 0.008 ){
+				// pos is on sightline numbered i+1
+				std::cerr << "crossing sightline #" << i+1 << std::endl;
+
+				Vector sl(1, slope + yinter, 0); // define vector direction for current sightline
+				Vector vpara = part.vel().parallel(sl); // find parallel velocity
+
+				output.open(prefix + strd::to_string(slIndex) + suffix);
+				output << vpara.mod() << std::endl;
+
+				return i + 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void Mirror::setSightlines(const std::string& inputSL, int rows)
+{
+	ifstream input;
+	input.open(inputSL);
+	if (!myfile.is_open()) {
+    	std::cerr << "Unable to open file" << std::endl; 
+    }
+
+    double val;
+    for (int row = 1; row <= rows; row ++){
+    	input >> val;
+    	sightlines_.push_back(val);
+    }
+    return;
+}
+
+// void Mirror::writeSightLines(int slIndex, Vector& vel)
+// {
+// 	std::string prefix  = "./SLoutput/sl";
+// 	std::string suffix  = ".out";
+
+// 	ofstream output;
+// 	output.open(prefix + strd::to_string(slIndex) + suffix);
+
+// 	double slope  = sightlines_[2 * i];
+// 	double yinter = sightlines_[2 * i + 1];
+
+// 	return;
+// }
+
 void Mirror::run()
 {
 	// double mass = MI * (1 - spec) + ME * spec;

@@ -18,6 +18,7 @@
 #include <cassert>
 #include <sstream>
 #include <fstream>
+#include <string>
 
 #include "Particle.h"
 #include "Vector.h"
@@ -106,7 +107,6 @@ Pusher<T>::Pusher(T& geo)
 template <class T>
 Pusher<T>::~Pusher()
 {
-	//delete geo_;
 	return;
 }
 
@@ -123,16 +123,17 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     	part.move(ENow, BNow, dt);
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
-    		std::cerr << "particle lost to limiter after" << i \
-    		<< "iterations." << std::endl;
+    		// std::cerr << "particle lost to limiter after" << i \
+    		// << "iterations." << std::endl;
     		break;
     	}
-
-    	if (write && (i % 1 == 0)){
+    	if (write){
+	    	(*geo_).sightline(part.pos());
+	    }
+    	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
-
 	return part.pos();
 }
 
@@ -151,12 +152,13 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
     		<< "iterations." << std::endl;
     		break;
     	}
-
+    	if (write){
+	    	(*geo_).sightline(part.pos());
+	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
-
 	return part.pos();
 }
 
@@ -219,6 +221,8 @@ Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine&
 	double yRand = distribution(generator);	
 	double zRand = distribution(generator);
 	while (yRand * yRand + zRand * zRand >= ylim * ylim){
+		// if it's not in the circle, try again.
+		yRand = distribution(generator);
         zRand = distribution(generator);
     }
 	double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
