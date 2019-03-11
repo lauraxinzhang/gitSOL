@@ -128,7 +128,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     		break;
     	}
     	if (write){
-	    	(*geo_).sightline(part.pos());
+	    	(*geo_).sightline(part);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -153,7 +153,7 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
     		break;
     	}
     	if (write){
-	    	(*geo_).sightline(part.pos());
+	    	(*geo_).sightline(part);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
