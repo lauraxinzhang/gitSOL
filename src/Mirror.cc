@@ -136,14 +136,16 @@ int Mirror::sightline(Particle& part)
 	}
 
 	if ( abs( part.pos().z() ) < 0.008 ){ // pos is in the plane of the sightlines
-
+//		std::cerr << "in the right plane" << std::endl;
 		for (int i = 0; i < 26; i++){
-			double slope  = sightlines_[2 * i];
-			double yinter = sightlines_[2 * i + 1];
+			double yinter = sightlines_[3 * i + 1]/100.0;
+			double slope  = sightlines_[3 * i + 2];
 
 			double yexpect = slope * part.pos().x() + yinter;
-
-			if ( abs( yexpect - part.pos().y() ) < 0.008 ){
+			//std::cerr << "i = " << i;
+			double deltaY = abs( yexpect - part.pos().y() );
+			//std::cerr << ", deltaY = " << deltaY << std::endl;
+			if ( deltaY < 0.008 ){
 				// pos is on sightline numbered i+1
 				std::cerr << "crossing sightline #" << i+1 << std::endl;
 
@@ -152,7 +154,8 @@ int Mirror::sightline(Particle& part)
 
 				output.open(prefix + std::to_string(i) + suffix);
 				output << vpara.mod() << std::endl;
-
+				output.close();
+				output.clear();
 				return i + 1;
 			}
 		}
@@ -169,10 +172,14 @@ void Mirror::setSightlines(const std::string& inputSL, int rows)
     }
 
     double val;
-    for (int row = 1; row <= rows; row ++){
+    for (int row = 1; row <= 3 * rows; row++){
     	input >> val;
-    	sightlines_.push_back(val);
+    //	std::cerr << "reading val = "<< val << std::endl;
+	sightlines_.push_back(val);
     }
+    //for (int i = 0; i < 26; i++){
+//	std::cerr << sightlines_[3*i + 1] << "," << sightlines_[3 * i + 2] << std::endl;
+  //  }
     return;
 }
 
