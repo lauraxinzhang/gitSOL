@@ -153,8 +153,9 @@ int Mirror::sightline(Particle& part, int lastCrossed)
 				Vector sl(1, slope + yinter, 0); // define vector direction for current sightline
 				Vector vpara = part.vel().parallel(sl); // find parallel velocity
 
+				double parallel = vpara.dot(sl.normalize());
 				output.open(prefix + std::to_string(i+1) + suffix, ios::app);
-				output << vpara.mod() << std::endl;
+				output << parallel << std::endl;
 				//output.close();
 				//output.clear();
 				return i;
