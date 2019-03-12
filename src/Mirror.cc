@@ -124,7 +124,7 @@ bool Mirror::isLimiter(const Vector& pos)
 	return result;
 }
 
-int Mirror::sightline(const Vector& pos)
+int Mirror::sightline(const Vector& pos, int lastCrossed)
 {
 	std::string prefix  = "./SLoutput/sl";
 	std::string suffix  = ".out";
@@ -137,7 +137,7 @@ int Mirror::sightline(const Vector& pos)
 
 	if ( abs( pos.z() ) < 0.008 ){ // pos is in the plane of the sightlines
 
-		for (i = 0; i < 26; i++){
+		for (i = lastCrossed; i > 0; i++){
 			double slope  = sightlines_[2 * i];
 			double yinter = sightlines_[2 * i + 1];
 
