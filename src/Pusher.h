@@ -116,6 +116,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
 	//coord.open("coordinates.out");
 	//coord << std::setprecision(10);
 	for (int i = 0; i < iter; i++){
+	//std::cerr << "pushing iteration: " << i << std::endl;	
 		Vector posNow = part.pos();
     	Vector BNow = (*geo_).getB(posNow);
     	Vector ENow = (*geo_).getE(posNow);
@@ -129,7 +130,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     		break;
     	}
     	if (write){
-	    	(*geo_).sightline(part.pos(), lastCrossed);
+	    	(*geo_).sightline(part, lastCrossed);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -154,7 +155,7 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
     		break;
     	}
     	if (write){
-	    	(*geo_).sightline(part.pos());
+	    	(*geo_).sightline(part);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -208,7 +209,7 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 			//std::cerr << posi << std::endl;
 			//std::cerr << veli << std::endl;
 			Particle part(posi, veli, 1, 0);
-			pushSingle(part, 0.01, 1000, write, conic);
+			pushSingle(part, 0.001, 2000, write, conic);
 		}
 	}
 	return;

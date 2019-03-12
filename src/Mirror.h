@@ -103,7 +103,8 @@ class Mirror
 		 * \brief Check whether the particle is crossing a sightline, return the index of that sightline
 		 * \return Index of sightline that Vector pos is on; 0 if not on any sightlines
 		 */
-		int sightline(const Vector& pos, int lastCrossed);
+
+		int sightline(Particle& part, int lastCrossed);
 
 		/**
 		 * \brief Parse input sightline definitions

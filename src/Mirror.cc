@@ -124,7 +124,7 @@ bool Mirror::isLimiter(const Vector& pos)
 	return result;
 }
 
-int Mirror::sightline(const Vector& pos, int lastCrossed)
+int Mirror::sightline(Particle& part, int lastCrossed)
 {
 	std::string prefix  = "./SLoutput/sl";
 	std::string suffix  = ".out";
@@ -135,24 +135,27 @@ int Mirror::sightline(const Vector& pos, int lastCrossed)
 		setSightlines(path, 26);
 	}
 
-	if ( abs( pos.z() ) < 0.008 ){ // pos is in the plane of the sightlines
+	if ( abs( part.pos().z() ) < 0.008 ){ // pos is in the plane of the sightlines
+//		std::cerr << "in the right plane" << std::endl;
+		for (int i = lastCrossed; i > 0; i--){
+			double yinter = sightlines_[3 * i + 1]/100.0;
+			double slope  = sightlines_[3 * i + 2];
 
-		for (i = lastCrossed; i > 0; i++){
-			double slope  = sightlines_[2 * i];
-			double yinter = sightlines_[2 * i + 1];
-
-			double yexpect = slope * pos.x() + yinter;
-
-			if ( abs( yexpect - pos.y() ) < 0.008 ){
+			double yexpect = slope * part.pos().x() + yinter;
+			//std::cerr << "i = " << i;
+			double deltaY = abs( yexpect - part.pos().y() );
+			//std::cerr << ", deltaY = " << deltaY << std::endl;
+			if ( deltaY < 0.008 ){
 				// pos is on sightline numbered i+1
 				std::cerr << "crossing sightline #" << i+1 << std::endl;
 
 				Vector sl(1, slope + yinter, 0); // define vector direction for current sightline
 				Vector vpara = part.vel().parallel(sl); // find parallel velocity
 
-				output.open(prefix + strd::to_string(slIndex) + suffix);
+				output.open(prefix + std::to_string(i) + suffix);
 				output << vpara.mod() << std::endl;
-
+				output.close();
+				output.clear();
 				return i + 1;
 			}
 		}
@@ -164,15 +167,19 @@ void Mirror::setSightlines(const std::string& inputSL, int rows)
 {
 	ifstream input;
 	input.open(inputSL);
-	if (!myfile.is_open()) {
-    	std::cerr << "Unable to open file" << std::endl; 
+	if (!input.is_open()) {
+    	std::cerr << "Unable to open sightline file" << std::endl; 
     }
 
     double val;
-    for (int row = 1; row <= rows; row ++){
+    for (int row = 1; row <= 3 * rows; row++){
     	input >> val;
-    	sightlines_.push_back(val);
+    //	std::cerr << "reading val = "<< val << std::endl;
+	sightlines_.push_back(val);
     }
+    //for (int i = 0; i < 26; i++){
+//	std::cerr << sightlines_[3*i + 1] << "," << sightlines_[3 * i + 2] << std::endl;
+  //  }
     return;
 }
 
