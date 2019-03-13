@@ -228,7 +228,8 @@ Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine&
 		yRand = distribution(generator);
         zRand = distribution(generator);
     }
-	double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+	// double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+    double xCalc = sqrt(radius * radius - yRand * yRand - zRand * zRand) - radius; // flip beam source to the right
 
 	Vector posi(xCalc, yRand, zRand);
 	return posi;
@@ -237,7 +238,8 @@ Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine&
 template <class T>
 Vector Pusher<T>::sphereNormal(double radius, Vector pos)
 {
-	double x = radius - pos.x();
+	// double x = radius - pos.x();
+	double x = 0 - radius - pos.x(); // flip beam source to the right
 	double y = -1 * pos.y();
 	double z = -1 * pos.z();
 	Vector result(x, y, z);
@@ -257,7 +259,9 @@ Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::defaul
 
 	double b = uni(generator);
 	double c = uni(generator);
-	double a = (radius * x0 - b * y0 - c * z0) / (x0 - radius);
+	// double a = (radius * x0 - b * y0 - c * z0) / (x0 - radius);
+	double a = (0 - radius * x0 - b * y0 - c * z0) / (x0 + radius); // flipping beam source
+
 
 	Vector tangent(a - x0, b - y0, c - z0); // a randomly generated vector tangent to sphere at pos
 	Vector velNorm = sphereNormal(radius, pos).normalize(); // normal vector of sphere at pos
