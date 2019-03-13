@@ -204,11 +204,12 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 
 	for (int iS = 0; iS < nsources; iS++){
 		Vector posi = sphere(radius, ylim, generator);
-
+		std::cerr << "source #" << iS << std::endl;
 		for (int n = 0; n < partPerS; n++){
 			Vector veli = diverge(radius, posi, dtheta, generator);
 			//std::cerr << posi << std::endl;
 			//std::cerr << veli << std::endl;
+			
 			Particle part(posi, veli, 1, 0);
 			pushSingle(part, 0.001, 2000, write, conic);
 		}
