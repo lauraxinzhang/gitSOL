@@ -270,7 +270,7 @@ int main(int argc, const char** argv)
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
         // pusher.gridBurst(1.8, 0.116, 200, 1);
-        pusher.conicBurst(1.8, 0.116, 0.02, 500, 100, 1);
+        pusher.conicBurst(1.8, 0.116, 0.02, 5000, 10, 1);
     }
     else if (controller == std::string("-h")){
     	help();

@@ -137,7 +137,7 @@ int Mirror::sightline(Particle& part, int lastCrossed)
 
 	if ( abs( part.pos().z() ) < 0.008 ){ // pos is in the plane of the sightlines
 //		std::cerr << "in the right plane" << std::endl;
-		for (int i = lastCrossed - 1; i >= 0; i--){
+		for (int i = lastCrossed + 1; i < 26; i++){
 		// i is index for rows, goes from 0 to 25
 			double yinter = sightlines_[3 * i + 1]/100.0;
 			double slope  = sightlines_[3 * i + 2];
@@ -148,7 +148,7 @@ int Mirror::sightline(Particle& part, int lastCrossed)
 			//std::cerr << ", deltaY = " << deltaY << std::endl;
 			if ( deltaY < 0.008 ){
 				// pos is on sightline numbered i+1
-				//std::cerr << "crossing sightline #" << i+1 << std::endl;
+				std::cerr << "crossing sightline #" << i+1 << std::endl;
 
 				Vector sl(1, slope + yinter, 0); // define vector direction for current sightline
 				Vector vpara = part.vel().parallel(sl); // find parallel velocity

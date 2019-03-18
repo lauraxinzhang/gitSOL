@@ -115,7 +115,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
 {
 	//coord.open("coordinates.out");
 	//coord << std::setprecision(10);
-	int lastCrossed = 26;// start at the last sightline (first to cross)
+	int lastCrossed = 0;// start at the last sightline (first to cross)
 	for (int i = 0; i < iter; i++){
 	//std::cerr << "pushing iteration: " << i << std::endl;	
 		Vector posNow = part.pos();
@@ -133,7 +133,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     	if (write){
 	    	lastCrossed = (*geo_).sightline(part, lastCrossed);
 	    }
-    	if (write && (i % 100 == 0)){
+    	if (write && (i % 10 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
@@ -211,7 +211,7 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 			//std::cerr << veli << std::endl;
 			
 			Particle part(posi, veli, 1, 0);
-			pushSingle(part, 0.001, 2000, write, conic);
+			pushSingle(part, 0.001, 4000, write, conic);
 		}
 	}
 	return;
@@ -251,7 +251,7 @@ template <class T>
 Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::default_random_engine& generator)
 {
 	std::normal_distribution<double> pitchAngle(0, dtheta);
-	std::uniform_real_distribution<double> uni(0, 1);
+	std::uniform_real_distribution<double> uni(-1, 1);
 
 	Vector posNorm = pos.normalize();
 	double x0 = posNorm.x();
