@@ -5,11 +5,11 @@
 
 xMin = -5;
 xMax = 10;
-numX = 100;
+numX = 50;
 
 RMin = 1;
 RMax = 5;
-numR = 50;
+numR = 20;
 
 xList = linspace(xMin, xMax, numX);
 RList = linspace(RMin, RMax, numR);
@@ -86,23 +86,23 @@ RGrid = repmat(RList,[numX,1]);
 
 surf(xGrid,RGrid,I)
 
-% ====== Output table ======
-
-% Path to data storage location
-dataPath = '/Users/Nick/Documents/MATLAB/Research_Data/SOL';
-
-% data file name
-fileName = 'I_func_TableData.txt';
-
-file = fullfile(dataPath,fileName);
-fid = fopen(file,'w');
-
-% Flatten all arrays into 1-D vectors to store as 3 column file
-xOut = repmat(xList,[1,numR]);
-rOut = reshape( repmat(RList,[numX,1]), [1,numR*numX] );
-IOut = reshape(I, [1,numR*numX]);
-
-% file key: xvals Rvals Ivals
-fprintf(fid,'%f %f %f \n',[xOut;rOut;IOut]);
-
-fclose(fid);
+% % ====== Output table ======
+% 
+% % Path to data storage location
+% dataPath = '/Users/Nick/Documents/MATLAB/Research_Data/SOL';
+% 
+% % data file name
+% fileName = 'I_func_TableData.txt';
+% 
+% file = fullfile(dataPath,fileName);
+% fid = fopen(file,'w');
+% 
+% % Flatten all arrays into 1-D vectors to store as 3 column file
+% xOut = repmat(xList,[1,numR]);
+% rOut = reshape( repmat(RList,[numX,1]), [1,numR*numX] );
+% IOut = reshape(I, [1,numR*numX]);
+% 
+% % file key: xvals Rvals Ivals
+% fprintf(fid,'%f %f %f \n',[xOut;rOut;IOut]);
+% 
+% fclose(fid);
