@@ -164,6 +164,20 @@ class Orbit
 		 */
 		void setPastukhov(Doub Ti, Doub Te, Doub multiplier = 1);
 
+
+		/**
+		 * \brief Calculate the passing only potential
+		 * \details Uses root finding to solve to normalized potential. Calls Struct passingHelp
+		 * 			to calculate the RHS of root finding.
+		 */
+		Doub passing(Doub Ti, Doub Te, Doub R);
+
+		/** 
+		 * \brief Calculates passing potential for the entire grid
+		 */
+		Doub setPassing(Doub Ti, Doub Te, Doub multiplier = 1);
+
+
 		/**
 		 *
 		 */
@@ -330,6 +344,36 @@ class Orbit
 	    Doub zllmtr_, zrlmtr_;
 	    Doub dr_, dz_;
 	    Doub Te_, Ti_;
+
+	    struct passingHelp
+	    {
+	    	Doub Ti_;
+	    	Doub Te_;
+	    	Doub R_;
+
+	    	VecDoub * xGrid_;
+	    	VecDoub * RGrid_;
+	    	MatDoub * integralTable_;
+
+	    	/**
+	    	 * Constructor of the helper struct for finding passing potential
+	    	 */
+	    	passingHelp(Doub Ti, Doub Te, Doub R);
+
+	    	/**
+	    	 * \brief Reads the table of I(x, R) integrals into member integralTable_.
+	    	 * \param input String to the location of integral table.
+	    	 */
+			void readTable(std::string input, int nx, int nR);
+
+			/**
+			 * \brief Returns Je - Ji for a given phi.
+			 * \note  Setup interpolated I(x, R) function from integralTable_.
+			 * \return Current difference for current phi.
+			 */
+			Doub operator() (Doub phi);
+
+	    };
 
 
 };

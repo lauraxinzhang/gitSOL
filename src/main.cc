@@ -272,6 +272,10 @@ int main(int argc, const char** argv)
         // pusher.gridBurst(1.8, 0.116, 200, 1);
         pusher.conicBurst(1.8, 0.116, 0.02, 5000, 10, 1);
     }
+    else if (controller == std::string("-passing")) {
+        std::cerr << "calculating passing particle potential" << std::endl;
+        orbit.setPassing(0.2, 1, 1); // set passing for Ti/Te = 0.2 TODO take command line
+    }
     else if (controller == std::string("-h")){
     	help();
     }
