@@ -115,7 +115,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
 {
 	//coord.open("coordinates.out");
 	//coord << std::setprecision(10);
-	int lastCrossed = 0;// start at the last sightline (first to cross)
+	int lastCrossed = -1;// start at the last sightline (first to cross)
 	for (int i = 0; i < iter; i++){
 	//std::cerr << "pushing iteration: " << i << std::endl;	
 		Vector posNow = part.pos();
@@ -133,7 +133,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     	if (write){
 	    	lastCrossed = (*geo_).sightline(part, lastCrossed);
 	    }
-    	if (write && (i % 10 == 0)){
+    	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
     	}
 	}
@@ -179,12 +179,13 @@ void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
 		// Vector posi(xCalc, yRand, zRand);
 		// Vector veli((-1*xCalc + radius), -1* yRand, -1*zRand);
 		Vector posi = sphere(radius, ylim, generator);
-		Vector veli = sphereNormal(radius, posi);
+		Vector veli = sphereNormal(radius, posi).normalize();
 
 		//std::cerr << posi << std::endl;
 		//std::cerr << veli << std::endl;
 		Particle part(posi, veli, 1, 0); // one particle per source for now
-		pushSingle(part, 0.01, 1000, write, coord);
+		pushSingle(part, 0.001, 4000, write, coord);
+
 	}
 
 	return;
@@ -204,14 +205,14 @@ void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsourc
 
 	for (int iS = 0; iS < nsources; iS++){
 		Vector posi = sphere(radius, ylim, generator);
-		std::cerr << "source #" << iS << std::endl;
+	//	std::cerr << "source #" << iS << std::endl;
 		for (int n = 0; n < partPerS; n++){
 			Vector veli = diverge(radius, posi, dtheta, generator);
 			//std::cerr << posi << std::endl;
 			//std::cerr << veli << std::endl;
 			
 			Particle part(posi, veli, 1, 0);
-			pushSingle(part, 0.001, 4000, write, conic);
+			pushSingle(part, 0.001, 3000, write, conic);
 		}
 	}
 	return;

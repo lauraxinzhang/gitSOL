@@ -269,8 +269,8 @@ int main(int argc, const char** argv)
         Mirror mirror(5, 0.15, 0.15, 201, 0); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        // pusher.gridBurst(1.8, 0.116, 200, 1);
-        pusher.conicBurst(1.8, 0.116, 0.02, 5000, 10, 1);
+        //pusher.gridBurst(1.8, 0.116, 5000, 1);
+        pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);
     }
     else if (controller == std::string("-h")){
     	help();
