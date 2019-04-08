@@ -175,7 +175,7 @@ class Orbit
 		/** 
 		 * \brief Calculates passing potential for the entire grid
 		 */
-		Doub setPassing(Doub Ti, Doub Te, Doub multiplier = 1);
+		void setPassing(Doub Ti, Doub Te, Doub multiplier = 1);
 
 
 		/**

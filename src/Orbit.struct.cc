@@ -21,7 +21,7 @@
 Orbit::passingHelp::passingHelp(Doub Ti, Doub Te, Doub R)
 	:Ti_(Ti), Te_(Te), R_(R), xGrid_(nullptr), RGrid_(nullptr), integralTable_(nullptr)
 {
-	readTable("./input/integral.csv", 50, 50);
+	readTable("./input/integral.csv", 100, 50); // 100 points in x, 50 in R
 	return;
 }
 
@@ -32,16 +32,24 @@ void Orbit::passingHelp::readTable(std::string input, int nx, int nR)
 
 	VecDoub * xGrid = new VecDoub(nx);
 	VecDoub * RGrid = new VecDoub(nR);
-	MatDoub * integral  = new Matdoub(nx, nR);
+	MatDoub * integral  = new MatDoub(nx, nR);
 	Doub current, x, R;
 
-	for (int i = 0; i < nx; i++){
-		for (int j = 0; j < nR; j++){
-			// assumes each line of input is x, R, I
-			inputfile >> x >> R >> current;
+	for (int i = 0; i < nR; i++){
+		inputfile >> R;
+		(*RGrid)[i] = R;
+		for (int j = 0; j < nx; j++){
+			// assumes each line of input is R, x, I
+			inputfile >> x >> current;
 			(*integral)[i][j] = current;
-			(*xGrid)[i] = x;
-			(*RGrid)[j] = R;
+			// (*RGrid)[i] = R;
+			(*xGrid)[j] = x;
+		
+			if (j != nx - 1){
+				Doub Rnext;
+				inputfile >> Rnext;
+				assert(Rnext == R); // making sure we're indeed still on the same R
+			}
 		}
 	}
 
@@ -53,7 +61,7 @@ void Orbit::passingHelp::readTable(std::string input, int nx, int nR)
 
 Doub Orbit::passingHelp::operator() (Doub phiTilde)
 {
-	INTERP2D function(xGrid_, RGrid_, integralTable_);
+	INTERP2D function((*xGrid_), (*RGrid_), (*integralTable_));
 
 	Doub Ie = function.interp(-1 * phiTilde, R_);
 	Doub Ii = function.interp( (Te_ / Ti_) * phiTilde, R_);
