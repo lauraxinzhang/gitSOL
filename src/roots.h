@@ -65,6 +65,7 @@ Doub rtbis(T &func, const Doub x1, const Doub x2, const Doub xacc) {
 		if (fmid <= 0.0) rtb=xmid;
 		if (abs(dx) < xacc || fmid == 0.0) return rtb;
 	}
+	std::cerr << "inside rtbis" << std::endl;
 	throw("Too many bisections in rtbis");
 }
 template <class T>

@@ -59,14 +59,14 @@
 /** Choose which interpolater to use throughout the class */
 // Use these two lines to compile with linear interpolations
 
-// typedef Linear_interp INTERP1D;
-// typedef Bilin_interp  INTERP2D;
+typedef Linear_interp INTERP1D;
+typedef Bilin_interp  INTERP2D;
 
 
 // Use these two lines to compile with Spline interpolations 
 // (very slow. use only in production mode when very pretty pictures are needed)
-typedef Spline_interp    INTERP1D;
-typedef Spline2D_interp  INTERP2D;
+//typedef Spline_interp    INTERP1D;
+//typedef Spline2D_interp  INTERP2D;
 
 /**
  * \brief  
