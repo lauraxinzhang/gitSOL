@@ -401,6 +401,37 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
     return;
 }
 
+Doub Orbit::passing(Doub Ti, Doub Te, Doub R)
+{
+	if (Rratio_ == nullptr){
+		configMirror();
+	}
+
+	passingHelp help(Ti, Te, R);
+	Doub foundX = rtbis(help, 0, 1000, 1E-9);
+
+	return foundX;
+}
+
+void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
+{
+	if (Rratio_ == nullptr) configMirror();
+	setTemp(Ti, Te);
+
+	Phi_ = new MatDoub(nw_, nh_);
+	for (int i = 0; i < nw_; ++i){
+    	for (int j = 0; j < nh_; ++j){
+    		if (std::isnan((*Rratio_)[i][j])){
+    			(*Phi_)[i][j] = NAN;
+    		} else {
+	    		Doub mirrorR = (*Rratio_)[i][j];
+	    		Doub x = passing(Ti, Te, mirrorR);
+	    		(*Phi_)[i][j] = x * multiplier;
+	    	}
+    	}
+    }
+}
+
 void Orbit::setTemp(Doub Ti, Doub Te)
 {
 	Ti_ = Ti;

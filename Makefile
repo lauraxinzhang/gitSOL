@@ -6,7 +6,7 @@
 CXX             = g++
 CXXFLAGS        = -g -pedantic -w -fopenmp -Wall -Wextra -std=c++11 -O3
 TARGETS = main
-OBJECTS = Orbit.o Orbit.test.o Orbit.write.o Mirror.o Vector.o Particle.o main.o
+OBJECTS = Orbit.o Orbit.test.o Orbit.write.o Orbit.struct.o Mirror.o Vector.o Particle.o main.o
 SRCDIR  = src/
 
 # ----- Make rules -----
@@ -27,6 +27,9 @@ Orbit.test.o:	$(SRCDIR)Orbit.test.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR
 
 Orbit.write.o:	$(SRCDIR)Orbit.write.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.write.cc
+
+Orbit.struct.o: $(SRCDIR)Orbit.struct.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.struct.cc
 
 Mirror.o:	$(SRCDIR)Mirror.cc $(SRCDIR)Mirror.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Mirror.cc $(LDFLAGS)
