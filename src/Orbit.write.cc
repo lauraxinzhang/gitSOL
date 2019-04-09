@@ -237,6 +237,29 @@ void Orbit::temperature(Doub Ti_start, Doub dT, int iter, Doub R)
 	return;
 }
 
+void Orbit::writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iterT, int iterR)
+{
+	ofstream output;
+	output.open("./output/passingSolution.out");
+	output << std::setprecision(8);
+
+	int iT(0), iR(0);
+	Doub Tnow(Ti_start), Rnow(R_start);
+	while (iT <= iterT){
+		while (iR <= iterR){
+			Doub phi = passing(Tnow, 1, Rnow);
+			output << Tnow << ' ' << Rnow << ' ' << phi << std::endl;
+			iR++;
+			Rnow += dR;
+		}
+		iT++;
+		Tnow += dT;
+	}
+	temp.close();
+
+	return;
+}
+
 void Orbit::writeEField(Doub Ti, Doub Te, std::ofstream &Er, std::ofstream &Ez,\
 			Doub mult)
 {

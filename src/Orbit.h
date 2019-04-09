@@ -179,7 +179,7 @@ class Orbit
 
 
 		/**
-		 *
+		 * \brief Sets Ti_ and Te_ private data members.
 		 */
 		void setTemp(Doub Ti, Doub Te);
 
@@ -283,6 +283,11 @@ class Orbit
 		 * \brief Outputs potential as a function of ion temperature.
 		 */
 		void temperature(Doub Ti_start, Doub dT, int iter, Doub R);
+
+		/**
+		 * \brief Outputs passing particle potential as a function of R and Ti
+		 */
+		void writePassing(Doub Ti_start, Doub dT, Doub R_start. Doub dR, int iterT, int iterR);
 
 		/**
 		 * \brief Calculates and outputs electric field
