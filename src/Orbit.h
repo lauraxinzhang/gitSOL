@@ -272,7 +272,7 @@ class Orbit
 		/**
 		 * \brief Writes {R, Z, ephi/Te} to output
 		 */
-		void writePastukhov(Doub Ti, Doub Te, std::ofstream &output);
+		void writePastukhov(Doub Ti, Doub Te, Doub multiplier, std::ofstream &output);
 
 		/**
 		 * \brief Writes potential on the mid plane
