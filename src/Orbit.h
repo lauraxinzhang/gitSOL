@@ -272,7 +272,7 @@ class Orbit
 		/**
 		 * \brief Writes {R, Z, ephi/Te} to output
 		 */
-		void writePastukhov(Doub Ti, Doub Te, std::ofstream &output);
+		void writePastukhov(Doub Ti, Doub Te, Doub multiplier, std::ofstream &output);
 
 		/**
 		 * \brief Writes potential on the mid plane
@@ -287,7 +287,7 @@ class Orbit
 		/**
 		 * \brief Outputs passing particle potential as a function of R and Ti
 		 */
-		void writePassing(Doub Ti_start, Doub dT, Doub R_start. Doub dR, int iterT, int iterR);
+		void writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iterT, int iterR);
 
 		/**
 		 * \brief Calculates and outputs electric field
