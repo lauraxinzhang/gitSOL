@@ -250,6 +250,7 @@ void Orbit::writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iter
 	int iT(0), iR(0);
 	Doub Tnow(Ti_start), Rnow(R_start);
 	while (iT <= iterT){
+
 		while (iR <= iterR){
 			Doub phi = passing(Tnow, 1, Rnow);
 			output << Tnow << ' ' << Rnow << ' ' << phi << std::endl;
@@ -258,6 +259,7 @@ void Orbit::writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iter
 		}
 		iT++;
 		Tnow += dT;
+		Rnow = R_start;
 	}
 	output.close();
 

@@ -365,6 +365,8 @@ class Orbit
 	    	 */
 	    	passingHelp(Doub Ti, Doub Te, Doub R);
 
+	    	~passingHelp();
+
 	    	/**
 	    	 * \brief Reads the table of I(x, R) integrals into member integralTable_.
 	    	 * \param input String to the location of integral table.

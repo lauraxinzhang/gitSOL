@@ -25,6 +25,13 @@ Orbit::passingHelp::passingHelp(Doub Ti, Doub Te, Doub R)
 	return;
 }
 
+Orbit::passingHelp::~passingHelp()
+{
+	delete xGrid_;
+	delete RGrid_;
+	delete integralTable_;
+}
+
 void Orbit::passingHelp::readTable(std::string input, int nx, int nR)
 {
 	std::ifstream inputfile;
@@ -70,7 +77,8 @@ Doub Orbit::passingHelp::operator() (Doub phiTilde)
 	Doub xe = -1 * phiTilde;
 	Doub xi = (Te_ / Ti_) * phiTilde;
 	assert(abs(xe) <= 25 && abs(xi) <= 25); // make sure the interpolation is not out of range
-	
+	assert(R_ <= 5);
+
 	Doub Ie = function.interp(xe, R_);
 	Doub Ii = function.interp(xi, R_);
 
