@@ -259,7 +259,7 @@ void Orbit::writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iter
 		iT++;
 		Tnow += dT;
 	}
-	temp.close();
+	output.close();
 
 	return;
 }

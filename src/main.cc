@@ -137,7 +137,7 @@ int main(int argc, const char** argv)
     	// TODO implement command line input to Ti Te, and starting point on limiter
     	// orbit.printData();
     	// temperature(0.1, 0.01, 200, 3,orbit);
-        orbit.writePassing(0.5, 0.2, 1, 1, 20, 20);
+        orbit.writePassing(1, 0.2, 1.1, 0.5, 2, 20);
     }
     else if (controller == std::string("-part"))
     {
