@@ -2,15 +2,11 @@ F = importdata('passingTest.out', ',');
 
 R = F(:, 1);
 Z = F(:, 2);
-B = F(:, 3);
+B = -1 * F(:, 3);
 
 % RM = reshape(R, [259, 259]);
 % ZM = reshape(Z, [259, 259]);
 % BM = reshape(B, [259, 259]);
-
-RM = reshape(R, [260, 260]);
-ZM = reshape(Z, [260, 260]);
-BM = reshape(B, [260, 260]);
 
 figure;
 set(gcf, 'renderer', 'zbuffer');
@@ -23,8 +19,8 @@ c1 = colorbar;
 % caxis([0.5, 3.8745])
 % set(c1, 'ylim', [-20 30])
 
-% ylabel(c1, 'Electric Field (V/m)', 'FontSize', 16);
-ylabel(c1, 'Normalized Potential (e\phi / Te)', 'FontSize', 16);
+ylabel(c1, 'Electric Field (V/m)', 'FontSize', 16);
+% ylabel(c1, 'Normalized Pastukhov Potential (e\phi / Te)', 'FontSize', 16);
 
 xlabel('Major Radius (m)', 'FontSize', 16);
 ylabel('Cylindrical Height (m)', 'FontSize', 16);
