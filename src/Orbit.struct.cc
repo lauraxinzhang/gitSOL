@@ -21,8 +21,15 @@
 Orbit::passingHelp::passingHelp(Doub Ti, Doub Te, Doub R)
 	:Ti_(Ti), Te_(Te), R_(R), xGrid_(nullptr), RGrid_(nullptr), integralTable_(nullptr)
 {
-	readTable("./input/I_func_TableData.txt", 100, 50); // 100 points in x, 50 in R
+	readTable("./input/I_func_TableData.txt", 250, 50); // 250 points in x, 50 in R
 	return;
+}
+
+Orbit::passingHelp::~passingHelp()
+{
+	delete xGrid_;
+	delete RGrid_;
+	delete integralTable_;
 }
 
 void Orbit::passingHelp::readTable(std::string input, int nx, int nR)
@@ -67,10 +74,16 @@ Doub Orbit::passingHelp::operator() (Doub phiTilde)
 {
 	INTERP2D function((*xGrid_), (*RGrid_), (*integralTable_));
 
-	Doub Ie = function.interp(-1 * phiTilde, R_);
-	Doub Ii = function.interp( (Te_ / Ti_) * phiTilde, R_);
+	Doub xe = -1 * phiTilde;
+	Doub xi = (Te_ / Ti_) * phiTilde;
+	assert(abs(xe) <= 25 && abs(xi) <= 25); // make sure the interpolation is not out of range
+	assert(R_ <= 5);
+
+	Doub Ie = function.interp(xe, R_);
+	Doub Ii = function.interp(xi, R_);
 
 	Doub diff = Ie - (ME / MI) * (Ti_ / Te_) * Ii;
-	// std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
+
+	std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
 	return diff;
 }

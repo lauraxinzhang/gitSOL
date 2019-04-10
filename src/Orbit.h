@@ -179,7 +179,7 @@ class Orbit
 
 
 		/**
-		 *
+		 * \brief Sets Ti_ and Te_ private data members.
 		 */
 		void setTemp(Doub Ti, Doub Te);
 
@@ -272,7 +272,7 @@ class Orbit
 		/**
 		 * \brief Writes {R, Z, ephi/Te} to output
 		 */
-		void writePastukhov(Doub Ti, Doub Te, std::ofstream &output);
+		void writePastukhov(Doub Ti, Doub Te, Doub multiplier, std::ofstream &output);
 
 		/**
 		 * \brief Writes potential on the mid plane
@@ -283,6 +283,11 @@ class Orbit
 		 * \brief Outputs potential as a function of ion temperature.
 		 */
 		void temperature(Doub Ti_start, Doub dT, int iter, Doub R);
+
+		/**
+		 * \brief Outputs passing particle potential as a function of R and Ti
+		 */
+		void writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iterT, int iterR);
 
 		/**
 		 * \brief Calculates and outputs electric field
@@ -359,6 +364,8 @@ class Orbit
 	    	 * Constructor of the helper struct for finding passing potential
 	    	 */
 	    	passingHelp(Doub Ti, Doub Te, Doub R);
+
+	    	~passingHelp();
 
 	    	/**
 	    	 * \brief Reads the table of I(x, R) integrals into member integralTable_.
