@@ -84,6 +84,6 @@ Doub Orbit::passingHelp::operator() (Doub phiTilde)
 
 	Doub diff = Ie - (ME / MI) * (Ti_ / Te_) * Ii;
 
-	std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
+	//std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
 	return diff;
 }
