@@ -19,6 +19,12 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED 1
 
+#include "nr3.h"
+#include "interp_1d.h"
+#include "interp_linear.h"
+#include "interp_2d.h"
+#include "dfridr.h"
+#include "roots.h"
 
 // Physical contants. Don't change unless you find the value to be wrong.
 #define PI 3.14159265358979323846		 // pi, no explanation needed...

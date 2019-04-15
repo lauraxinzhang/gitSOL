@@ -25,6 +25,7 @@
 #include "interp_2d.h"
 #include "dfridr.h"
 #include "roots.h"
+#include <cassert>
 #include "Constants.h"
 
 struct PassingHelp
@@ -37,7 +38,7 @@ struct PassingHelp
 	VecDoub * RGrid_;
 	MatDoub * integralTable_;
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	/**
 	 * Constructor of the helper struct for finding passing potential
@@ -66,7 +67,7 @@ struct Psir
 	INTERP2D function_;
 	const Doub   z_;
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	Psir(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub z);
 
@@ -78,7 +79,7 @@ struct Psiz
 	INTERP2D function_;
 	const Doub   r_;
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	Psiz(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub r);
 
@@ -91,7 +92,7 @@ struct psiLimiter
 	INTERP1D zOfR_;
 	Doub RHS_; // RHS is user supplied psiZero at point(r, z) of the full grid
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	psiLimiter(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, \
 		const VecDoub& rL, const VecDoub& zL);
@@ -112,7 +113,7 @@ struct pastukhovHelp
 
 	Doub LHS_;
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	pastukhovHelp(Doub Ti, Doub Te, Doub R);
 
@@ -128,7 +129,7 @@ struct eFieldHelp
 	INTERP1D helper_; // shouldn't have any problem if initialized under ':'
 	// VecDoub lList_, potList_;
 
-	friend class Orbit;
+//	friend class Orbit;
 
 	eFieldHelp(VecDoub lList, VecDoub potList);
 

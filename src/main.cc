@@ -270,7 +270,7 @@ int main(int argc, const char** argv)
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
-        pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);
+        //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);
     }
     else if (controller == std::string("-passing")) {
         std::cerr << "calculating passing particle potential" << std::endl;
