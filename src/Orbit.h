@@ -31,6 +31,7 @@
 // Programmer class includes
 #include "Vector.h"
 #include "Particle.h"
+#include "Struct.h"
 
 // Numerical Recipe routines includes
 #include "nr3.h"
@@ -350,158 +351,17 @@ class Orbit
 	    Doub dr_, dz_;
 	    Doub Te_, Ti_;
 
-	    struct passingHelp
-	    {
-	    	Doub Ti_;
-	    	Doub Te_;
-	    	Doub R_;
-
-	    	VecDoub * xGrid_;
-	    	VecDoub * RGrid_;
-	    	MatDoub * integralTable_;
-
-	    	/**
-	    	 * Constructor of the helper struct for finding passing potential
-	    	 */
-	    	passingHelp(Doub Ti, Doub Te, Doub R);
-
-	    	~passingHelp();
-
-	    	/**
-	    	 * \brief Reads the table of I(x, R) integrals into member integralTable_.
-	    	 * \param input String to the location of integral table.
-	    	 */
-			void readTable(std::string input, int nx, int nR);
-
-			/**
-			 * \brief Returns Je - Ji for a given phi.
-			 * \note  Setup interpolated I(x, R) function from integralTable_.
-			 * \return Current difference for current phi.
-			 */
-			Doub operator() (Doub phi);
-
-	    };
-
+	    friend struct PassingHelp;
+	    friend struct Psir;
+	    friend struct Psiz;
+	    friend struct psiLimiter;
+	    friend struct pastukhovHelp;
+	    friend struct eFieldHelp;
 
 };
 
 // Helper Functors for numerical routines
 
-struct Psir
-{
-	INTERP2D function_;
-	const Doub   z_;
 
-	Psir(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub z)
-		:function_(rG, zG, f), z_(z)
-	{
-		/** interpolation objects need to be initialized under the colon 
-		 initializer. Otherwise the data members will be messed up. */
-		// function_ = function;
-	}
-
-	Doub operator() (Doub r)
-	{
-		return function_.interp(r, z_);
-	}
-};
-
-struct Psiz
-{
-	INTERP2D function_;
-	const Doub   r_;
-
-	Psiz(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub r)
-		:function_(rG, zG, f), r_(r)
-	{
-		// function_ = function;
-	}
-
-	Doub operator() (Doub z)
-	{
-		return function_.interp(r_, z);
-	}
-};
-
-struct psiLimiter
-{
-	INTERP2D psifull_;
-	INTERP1D zOfR_;
-	Doub RHS_; // RHS is user supplied psiZero at point(r, z) of the full grid
-
-	psiLimiter(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, \
-		const VecDoub& rL, const VecDoub& zL)
-		: psifull_(rG, zG, f), zOfR_(rL, zL), RHS_(0)
-	{
-		// nothing to do here?
-	}
-
-	void setRHS(Doub r, Doub z)
-	{
-		RHS_ = psifull_.interp(r, z);
-		return;
-	}
-
-	// For a given r on the limiter, return the difference in flux 
-	// between limiter and given RHS
-	Doub operator() (const Doub& r)
-	{
-		Doub zNow( zOfR_.interp(r) );
-
-		Doub psiLimiter( psifull_.interp(r, zNow) );
-
-		return psiLimiter - RHS_;
-	}
-
-	Doub getZ(Doub& r)
-	{
-		return zOfR_.interp(r);
-	}
-};
-
-struct pastukhovHelp
-{
-	Doub Ti_;
-	Doub Te_;
-
-	Doub LHS_;
-
-	pastukhovHelp(Doub Ti, Doub Te, Doub R)
-		:Ti_(Ti), Te_(Te)
-	{
-		Doub constant   = sqrt(2.0/PI)*sqrt(MI/ME) * pow( (Ti/Te), (3.0/2.0) );
-		// MI and ME defined in particle.cc
-		Doub gOfR       = (2.0*R+1.0)/(2.0*R) * log(4.0*R+2.0);
-		Doub LHS        =  constant * log10(R)/gOfR;
-
-		LHS_ = LHS;
-	}
-
-	Doub operator()(const Doub& x)
-	{
-		Doub I = 1 + ( sqrt(PI) * exp(x) * erfc( sqrt(x) ) / (2 * sqrt(x)) );
-		Doub fOfX = x * exp(x)/I;
-
-		return fOfX - LHS_;
-	}
-};
-
-/**
- * \brief constructs a linearly interpolated potential along an given l axis
- * \return phi(l). Callable for use in differentiation.
- */
-struct eFieldHelp
-{
-	INTERP1D helper_; // shouldn't have any problem if initialized under ':'
-	// VecDoub lList_, potList_;
-
-	eFieldHelp(VecDoub lList, VecDoub potList)
-		:helper_(lList, potList){}
-
-	Doub operator() (Doub l)
-	{
-		return helper_.interp(l);
-	}
-};
 
 #endif // ORBIT_H_INCLUDED

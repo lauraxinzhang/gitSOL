@@ -19,7 +19,7 @@ clean:
 main:	$(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o main $(OBJECTS) $(LDFLAGS)
 
-Orbit.o:	$(SRCDIR)Orbit.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+Orbit.o:	$(SRCDIR)Orbit.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h $(SRCDIR)Struct.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.cc $(LDFLAGS)
 
 Orbit.test.o:	$(SRCDIR)Orbit.test.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
@@ -28,8 +28,8 @@ Orbit.test.o:	$(SRCDIR)Orbit.test.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR
 Orbit.write.o:	$(SRCDIR)Orbit.write.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.write.cc
 
-Orbit.struct.o: $(SRCDIR)Orbit.struct.cc $(SRCDIR)Orbit.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
-	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Orbit.struct.cc
+Struct.o: $(SRCDIR)Struct.cc $(SRCDIR)Orbit.h $(SRCDIR)Struct.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Struct.cc
 
 Mirror.o:	$(SRCDIR)Mirror.cc $(SRCDIR)Mirror.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Mirror.cc $(LDFLAGS)
@@ -40,5 +40,5 @@ Vector.o:	$(SRCDIR)Vector.h $(SRCDIR)Vector.cc
 Particle.o: $(SRCDIR)Particle.h $(SRCDIR)Particle.cc $(SRCDIR)Vector.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)Particle.cc
 
-main.o: $(SRCDIR)main.cc $(SRCDIR)Pusher.h $(SRCDIR)Orbit.h $(SRCDIR)Mirror.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h
+main.o: $(SRCDIR)main.cc $(SRCDIR)Pusher.h $(SRCDIR)Orbit.h $(SRCDIR)Mirror.h $(SRCDIR)Vector.h $(SRCDIR)Particle.h $(SRCDIR)Struct.h
 	$(CXX) -c $(CXXFLAGS) $(SRCDIR)main.cc $(LDFLAGS)
