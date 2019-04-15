@@ -64,7 +64,7 @@ void Mirror::setPotential(double Rratio)
 	double dphi = (phiMid / 2) / (nx_ - 1);
 
 	for (int i = imid; i >= 0; i--){
-		// linear profile for now
+		// TODO: linear profile for now, change it
 		(*newgrid)[i]          = (*newgrid)[i + 1] - dphi; // points to the left of iMid
 		(*newgrid)[nx_ - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
 	}
@@ -76,7 +76,7 @@ void Mirror::setPotential(double Rratio)
 
 double Mirror::findPhiMid(double Rratio)
 {
-	//TODO: implement this root finding goes here
+	//TODO: implement this. root finding goes here
 	double result(0); //place holder
 
 	return result;
@@ -116,102 +116,11 @@ Vector Mirror::getB()
 bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
-	// case 1 : hits the limit of computation box
+	// hits the limit of computation box
 	if (pos.x() >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
 		result = true;
 	}
-	// case 2: Beam scraper
 	return result;
 }
 
-int Mirror::sightline(Particle& part, int lastCrossed)
-{
-	std::string prefix  = "./SLoutput/sl";
-	std::string suffix  = ".out";
-	ofstream output;
 
-	if (sightlines_.size() == 0){
-		std::string path = "./input/viewlineBL.csv";
-		setSightlines(path, 26);
-	}
-
-	if ( abs( part.pos().z() ) < 0.008 ){ // pos is in the plane of the sightlines
-		// std::cerr << "in the right plane" << std::endl;
-		for (int i = lastCrossed + 1; i < 26; i++){
-		// i is index for rows, goes from 0 to 25
-			double xinter = sightlines_[3 * i + 1];
-			double slope  = sightlines_[3 * i + 2];
-
-			double yexpect = slope * ( part.pos().x() - xinter );
-			//std::cerr << "i = " << i << ", xinter" <<xinter <<  ", slope" << slope << ", x: " << part.pos().x()<< std::endl;
-			double deltaY = abs( yexpect - part.pos().y() );
-			//std::cerr << ", deltaY = " << deltaY << ", yexpect: " << yexpect << ", pos.y " << part.pos().y() << std::endl;
-			if ( deltaY < 0.008 ){
-				// pos is on sightline numbered i+1
-				//std::cerr << "crossing sightline #" << i+1 << std::endl;
-
-				Vector sl(1, slope, 0); // define vector direction for current sightline
-				Vector vpara = part.vel().parallel(sl); // find parallel velocity
-
-				double parallel = vpara.dot(sl.normalize());
-				output.open(prefix + std::to_string(i+1) + suffix, ios::app);
-				output << parallel << std::endl;
-				//output.close();
-				//output.clear();
-				return i;
-			}
-		}
-	}
-	return lastCrossed;
-}
-
-void Mirror::setSightlines(const std::string& inputSL, int rows)
-{
-	ifstream input;
-	input.open(inputSL);
-	if (!input.is_open()) {
-    	std::cerr << "Unable to open sightline file" << std::endl; 
-    }
-
-    double val;
-    for (int row = 1; row <= 3 * rows; row++){
-    	input >> val;
-    //	std::cerr << "reading val = "<< val << std::endl;
-	sightlines_.push_back(val);
-    }
-    //for (int i = 0; i < 26; i++){
-//	std::cerr << sightlines_[3*i + 1] << "," << sightlines_[3 * i + 2] << std::endl;
-  //  }
-    return;
-}
-
-// void Mirror::writeSightLines(int slIndex, Vector& vel)
-// {
-// 	std::string prefix  = "./SLoutput/sl";
-// 	std::string suffix  = ".out";
-
-// 	ofstream output;
-// 	output.open(prefix + strd::to_string(slIndex) + suffix);
-
-// 	double slope  = sightlines_[2 * i];
-// 	double yinter = sightlines_[2 * i + 1];
-
-// 	return;
-// }
-
-void Mirror::run()
-{
-	// double mass = MI * (1 - spec) + ME * spec;
-
-	// //initialize an hydrogen ion with energy and direction input by user;
-	// double vx = sqrt(energy * ex * EVTOJOULE / mass); // thermal velocity
-	// double vy = sqrt(energy * ey * EVTOJOULE / mass);
-	// double vz = sqrt(energy * ez * EVTOJOULE / mass);
-
- //    Vector veli(vx, vy, vz);
- //    Vector posi(0.4 * xlim_ , 0, 0);
-
- //    Particle part(posi, veli, spec);
-	//
-	return;
-}
