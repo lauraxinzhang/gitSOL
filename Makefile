@@ -6,7 +6,7 @@
 CXX             = g++
 CXXFLAGS        = -g -pedantic -w -fopenmp -Wall -Wextra -std=c++11 -O3
 TARGETS = main
-OBJECTS = Orbit.o Orbit.test.o Orbit.write.o Orbit.struct.o Mirror.o Vector.o Particle.o main.o
+OBJECTS = Orbit.o Orbit.test.o Orbit.write.o Struct.o Mirror.o Vector.o Particle.o main.o
 SRCDIR  = src/
 
 # ----- Make rules -----

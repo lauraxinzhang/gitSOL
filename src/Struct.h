@@ -1,5 +1,5 @@
 /**
- * \file    Strudt.h
+ * \file    Struct.h
  * \author  Xin Zhang, Princeton Plasma Physics Laboratory
  * \date    March, 2019
  *
@@ -15,7 +15,15 @@
  *      
  *          Uses double instead of float to avoid floating number errors.
  */
+//#include "Orbit.h"
 
+// Numerical Recipe routines includes
+#include "nr3.h"
+#include "interp_1d.h"
+#include "interp_linear.h"
+#include "interp_2d.h"
+#include "dfridr.h"
+#include "roots.h"
 
 struct PassingHelp
 {
@@ -26,6 +34,8 @@ struct PassingHelp
 	VecDoub * xGrid_;
 	VecDoub * RGrid_;
 	MatDoub * integralTable_;
+
+	friend class Orbit;
 
 	/**
 	 * Constructor of the helper struct for finding passing potential
@@ -54,6 +64,8 @@ struct Psir
 	INTERP2D function_;
 	const Doub   z_;
 
+	friend class Orbit;
+
 	Psir(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub z);
 
 	Doub operator() (Doub r);
@@ -63,6 +75,8 @@ struct Psiz
 {
 	INTERP2D function_;
 	const Doub   r_;
+
+	friend class Orbit;
 
 	Psiz(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, Doub r);
 
@@ -74,6 +88,8 @@ struct psiLimiter
 	INTERP2D psifull_;
 	INTERP1D zOfR_;
 	Doub RHS_; // RHS is user supplied psiZero at point(r, z) of the full grid
+
+	friend class Orbit;
 
 	psiLimiter(const VecDoub& rG, const VecDoub& zG, const MatDoub& f, \
 		const VecDoub& rL, const VecDoub& zL);
@@ -94,6 +110,8 @@ struct pastukhovHelp
 
 	Doub LHS_;
 
+	friend class Orbit;
+
 	pastukhovHelp(Doub Ti, Doub Te, Doub R);
 
 	Doub operator()(const Doub& x);
@@ -107,6 +125,8 @@ struct eFieldHelp
 {
 	INTERP1D helper_; // shouldn't have any problem if initialized under ':'
 	// VecDoub lList_, potList_;
+
+	friend class Orbit;
 
 	eFieldHelp(VecDoub lList, VecDoub potList);
 

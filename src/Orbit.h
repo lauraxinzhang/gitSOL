@@ -28,10 +28,6 @@
 #include <stdlib.h>     /* srand, rand */
 #include <time.h>       /* time */
 
-// Programmer class includes
-#include "Vector.h"
-#include "Particle.h"
-#include "Struct.h"
 
 // Numerical Recipe routines includes
 #include "nr3.h"
@@ -41,6 +37,16 @@
 #include "dfridr.h"
 #include "roots.h"
 
+/** Choose which interpolater to use throughout the class */
+// Use these two lines to compile with linear interpolations
+//
+typedef Linear_interp INTERP1D;
+typedef Bilin_interp  INTERP2D;
+
+// Programmer class includes
+#include "Vector.h"
+#include "Particle.h"
+#include "Struct.h"
 
 // Physical contants. Don't change unless you find the value to be wrong.
 #define PI 3.14159265358979323846		 // pi, no explanation needed...
@@ -56,12 +62,6 @@
 #define BMAGAXIS  2000                   // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
 #define NPERORBIT 20                     // steps per Lamor orbit, from Boris convergence test.
 
-
-/** Choose which interpolater to use throughout the class */
-// Use these two lines to compile with linear interpolations
-
-typedef Linear_interp INTERP1D;
-typedef Bilin_interp  INTERP2D;
 
 
 // Use these two lines to compile with Spline interpolations 

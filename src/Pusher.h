@@ -188,7 +188,9 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
 
 //---------------------------------------  NBI   ---------------------------------------------
 
-
+/**
+ * Uncomment to use.
+ *
 template <class T>
 void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
 {
@@ -299,7 +301,7 @@ Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::defaul
 
 	return result.normalize();
 }
-
+*/
 
 
 #endif // PUSHER_H_INCLUDED
