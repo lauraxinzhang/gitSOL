@@ -15,7 +15,8 @@
  *      
  *          Uses double instead of float to avoid floating number errors.
  */
-//#include "Orbit.h"
+#ifndef STRUCT_H_INCLUDED
+#define STRUCT_H_INCLUDED 1
 
 // Numerical Recipe routines includes
 #include "nr3.h"
@@ -24,6 +25,7 @@
 #include "interp_2d.h"
 #include "dfridr.h"
 #include "roots.h"
+#include "Constants.h"
 
 struct PassingHelp
 {
@@ -132,3 +134,6 @@ struct eFieldHelp
 
 	Doub operator() (Doub l);
 };
+
+#endif
+

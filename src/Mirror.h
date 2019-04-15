@@ -26,18 +26,7 @@
 
 // Numerical Recipe routines includes
 #include "nr3.h"
-
-// Physical contants. Don't change unless you find the value to be wrong.
-// TODO: if both Orbit and Mirror are compiled, are these repeated defs going to give problems?
-
-#define PI 3.14159265358979323846		 // pi, no explanation needed...
-#define CC 299792458.0                   // speed of light
-// #define QE 4.8E-10                    // electron charge, in Fr
-
-#define ME 9.1E-31                       // electron mass, in kilogram
-#define MI 1.6726219E-27                 // ion mass, in kilogram
-#define QE 1.60217662E-19                // elementary charge, in coulomb
-#define EVTOJOULE 1.60217662E-19         // energy conversion factor
+#include "Constants.h"
 
 class Mirror
 {

@@ -7,10 +7,6 @@
  * 
  */
 
-#define ME 9.1E-31                        // electron mass, in kilogram
-#define MI 1.6726219E-27                  // ion mass, in kilogram
-#define QE 1.60217662E-19                 // elementary charge, in coulomb
-
 #include "Particle.h"
 
 Particle::Particle()

@@ -14,6 +14,7 @@
 #include <time.h> // for seeding the random engine.
 #include <random>
 #include "Vector.h"
+#include "Constants.h"
 
 /**
  * \brief  A class for individual particle objects
