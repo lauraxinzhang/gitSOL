@@ -23,7 +23,6 @@
 #include "Particle.h"
 #include "Vector.h"
 #include "Orbit.h"
-#include "Particle.h"
 
 
 template <class T> // templated to be used with Orbit or Mirror class geometry
