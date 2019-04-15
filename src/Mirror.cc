@@ -11,13 +11,19 @@
 
 #include "Mirror.h"
 
-Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
-		: xlim_(xlim), ylim_(ylim), zlim_(zlim), nx_(nx), 
-		  xGrid_(nullptr), potential_(nullptr),
-		  Buniform_(Buniform)
+Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx, )
+		: Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
+		  nx_(nx), 
+		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr),		  
 {
 	// make sure nx is odd
 	assert(nx % 2 == 1);
+
+	// define computation box according to physical paramters
+	xlim_ = 6 * L;
+	ylim_ = L;
+	zlim_ = L;
+
 	// fill in x grid
 	double dx = xlim_ / (nx_ - 1);
 	VecDoub * newgrid = new VecDoub(nx);
@@ -26,6 +32,9 @@ Mirror::Mirror(double xlim, double ylim, double zlim, int nx, double Buniform)
 		(*newgrid)[i] = (*newgrid)[i - 1] + dx;
 	}
 	xGrid_ = newgrid;
+
+	setGridShift();
+	assert(xShift_ != nullptr);
 
 	//fill in potential grid
 	setPotential();
@@ -39,7 +48,24 @@ Mirror::~Mirror()
 {
 	// delete all dynamically allocated objects.
 	delete xGrid_;
+	delete xShift_;
 	delete potential_;
+	return;
+}
+
+void Mirror::setGridShift()
+{
+	if(xShift_ == nullptr){ // if shifted grids haven't been created yet
+		// create shifted x grids (right shift)
+		VecDoub * xShift = new VecDoub( xGrid_ -> begin(), --xGrid_ -> end() );
+		assert(xShift->size() == nx_ - 1);
+
+		double dx = xlim_ / (nx_ - 1);
+		for (int i = 0; i < nx_ - 1; ++i){
+			(*xShift)[i] += dx / 2; // shift by half a grid size
+		}
+		xShift_ = xShift;
+	}
 	return;
 }
 
@@ -76,9 +102,9 @@ void Mirror::setPotential(double Rratio)
 
 double Mirror::findPhiMid(double Rratio)
 {
-	//TODO: implement this. root finding goes here
-	double result(0); //place holder
-
+	PassingHelp help(Ti_, Te_, Rratio);
+	Doub upper = 24.9 * Ti_ / Te_;
+	Doub result = rtbis(help, 0, upper, 1E-9); // root bracketed between 0 and 10, required by input file.
 	return result;
 }
 
@@ -87,11 +113,10 @@ void Mirror::setEField()
 	if (potential_ == nullptr){
 		setPotential();
 	} else {
-		// do something to setup a grid of electric field. Define it on a shifted grid?
+		// TODO: Defined on shifted grid. Implement finite difference.
 	}
 	return;
 }
-
 
 Vector Mirror::getE(const Vector& pos)
 {
@@ -102,8 +127,13 @@ Vector Mirror::getE(const Vector& pos)
 
 Vector Mirror::getB(const Vector& pos)
 {
-	double x = pos.x();
-	Vector result;
+	double x = pos.x() - (xlim_ / 2); // shift to coordinates of magnetic field description.
+	double y = pos.y();
+
+	double denom = R_ + pow( (x / L_), 4);
+	double Bx = Buniform_ * ( 1 + pow( (x / L_), 4) ) / denom;
+	double By = Buniform_ * 4 * ( 1 - R_ ) * pow( (x / L_), 3) * ( y / L_ ) / pow(denom, 2);
+	Vector result(Bx, By, 0);
 	return result;
 }
 

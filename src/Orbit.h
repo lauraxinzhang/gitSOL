@@ -29,15 +29,6 @@
 #include <time.h>       /* time */
 
 
-// Numerical Recipe routines includes
-#include "nr3.h"
-#include "interp_1d.h"
-#include "interp_linear.h"
-#include "interp_2d.h"
-#include "dfridr.h"
-#include "roots.h"
-
-
 // Programmer class includes
 #include "Constants.h"
 #include "Vector.h"

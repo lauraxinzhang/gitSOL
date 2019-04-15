@@ -408,7 +408,7 @@ Doub Orbit::passing(Doub Ti, Doub Te, Doub R)
 	}
 	setTemp(Ti, Te);
 	PassingHelp help(Ti, Te, R);
-	Doub upper = 9.9 * Ti_ / Te_;
+	Doub upper = 24.9 * Ti_ / Te_;
 	Doub foundX = rtbis(help, 0, upper, 1E-9); // root bracketed between 0 and 10, required by input file.
 	return foundX;
 }

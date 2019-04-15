@@ -18,13 +18,6 @@
 #ifndef STRUCT_H_INCLUDED
 #define STRUCT_H_INCLUDED 1
 
-// Numerical Recipe routines includes
-#include "nr3.h"
-#include "interp_1d.h"
-#include "interp_linear.h"
-#include "interp_2d.h"
-#include "dfridr.h"
-#include "roots.h"
 #include <cassert>
 #include "Constants.h"
 

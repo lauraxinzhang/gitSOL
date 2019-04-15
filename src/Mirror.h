@@ -23,9 +23,6 @@
 // Programmer class includes
 #include "Vector.h"
 #include "Particle.h"
-
-// Numerical Recipe routines includes
-#include "nr3.h"
 #include "Constants.h"
 
 class Mirror
@@ -36,9 +33,11 @@ class Mirror
 		 * \brief A constructor for uniform magnetic field
 		 *
 		 */
-		Mirror(double xlim, double ylim, double zlim, int nx, double Buniform);
+		Mirror(double Ti, double Te, double xlim, double ylim, double zlim, int nx, double Buniform);
 
 		~Mirror();
+
+		void setGridShift();
 
 		/**
 		 * \brief Initializes the electric potential in the grid
@@ -64,6 +63,7 @@ class Mirror
 		 *        setPotential() to setup 0 potential everywhere.
 		 */
 		void setEField();
+
 
 		/** 
 		 * \brief Calculate electric field given current position
@@ -92,19 +92,27 @@ class Mirror
 	private:
 		Mirror(); // disable default constructor
 
-		double Ti_;  //default constructed
-		double Te_;  //default constructed
+		// physical parameters first
+		double Ti_;  
+		double Te_;
+		double Buniform_;
+		double R_; 
+		double L_; 
 
+		// simulation parameters
 		double xlim_; // size of computation box (0, xlim_)
 		double ylim_; // (-ylim_, ylim)
 		double zlim_; // (-zlim_, zlim)
 
 		int nx_; // size of grid in x direction
 		VecDoub * xGrid_;
+		VecDoub * xShift_;
 
 		VecDoub * potential_; // potential is only a function of x
 
-		double Buniform_;
+
+
+
 };
 
 
