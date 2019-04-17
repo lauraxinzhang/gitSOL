@@ -47,7 +47,10 @@ class Mirror
 		void setPotential();
 
 		/**
-		 * \brief Initializes potential grid given midplane potential
+		 * \brief    Initializes potential grid given midplane potential
+		 * \details  Assume a cos shape for convenience: 
+		 *			 phi (x) = phiMid * cos(x * pi / 2 * xlim)
+		 *           
 		 */
 		void setPotential(double Rratio);
 
@@ -58,9 +61,10 @@ class Mirror
 		double findPhiMid(double Rratio);
 
 		/**
-		 * \brief Calculate electric field everywhere
-		 * \note  Potential grid needs to be already setup, if not, calls
-		 *        setPotential() to setup 0 potential everywhere.
+		 * \brief    Calculate electric field everywhere w/ linear finite difference
+		 * \details  E[i] = - (phi[i+1] - phi[i]) / dx 
+		 * \note     Potential grid needs to be already setup, if not, calls
+		 *           setPotential() to setup 0 potential everywhere.
 		 */
 		void setEField();
 
@@ -100,7 +104,7 @@ class Mirror
 		double L_; 
 
 		// simulation parameters
-		double xlim_; // size of computation box (0, xlim_)
+		double xlim_; // size of computation box (-xlim_, xlim_)
 		double ylim_; // (-ylim_, ylim)
 		double zlim_; // (-zlim_, zlim)
 
@@ -109,7 +113,7 @@ class Mirror
 		VecDoub * xShift_;
 
 		VecDoub * potential_; // potential is only a function of x
-
+		VecDoub * EField_;
 
 
 

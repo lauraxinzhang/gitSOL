@@ -14,30 +14,31 @@
 Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx, )
 		: Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
 		  nx_(nx), 
-		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr),		  
+		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr)
 {
 	// make sure nx is odd
 	assert(nx % 2 == 1);
 
 	// define computation box according to physical paramters
-	xlim_ = 6 * L;
+	xlim_ = 3 * L;
 	ylim_ = L;
 	zlim_ = L;
 
 	// fill in x grid
-	double dx = xlim_ / (nx_ - 1);
+	double dx = 2 * xlim_ / (nx_ - 1); // extends to a xlim on each side.
 	VecDoub * newgrid = new VecDoub(nx);
-	(*newgrid)[0] = 0;
+	(*newgrid)[0] = -1 * xlim_; 
 	for (int i = 0; i < nx_; i++){
 		(*newgrid)[i] = (*newgrid)[i - 1] + dx;
 	}
 	xGrid_ = newgrid;
+	assert(xGrid_ != nullptr && xGrid_->size() == nx_);
 
 	setGridShift();
 	assert(xShift_ != nullptr);
 
 	//fill in potential grid
-	setPotential();
+	setPotential(R_);
 	// ensure that the potential grid is a valid vector
 	assert(potential_!= nullptr);
 
@@ -60,7 +61,7 @@ void Mirror::setGridShift()
 		VecDoub * xShift = new VecDoub( xGrid_ -> begin(), --xGrid_ -> end() );
 		assert(xShift->size() == nx_ - 1);
 
-		double dx = xlim_ / (nx_ - 1);
+		double dx = 2 * xlim_ / (nx_ - 1); // extends to a xlim on each side.
 		for (int i = 0; i < nx_ - 1; ++i){
 			(*xShift)[i] += dx / 2; // shift by half a grid size
 		}
@@ -71,6 +72,7 @@ void Mirror::setGridShift()
 
 void Mirror::setPotential()
 {
+	std::cerr << "warning: potential is set to be 0 everywhere." << std::endl;
 	VecDoub * newgrid = new VecDoub(nx_);
 	for (int i = 0; i < nx_; i++){
 		(*newgrid)[i] = 0;
@@ -84,16 +86,15 @@ void Mirror::setPotential(double Rratio)
 	double phiMid = findPhiMid(Rratio);
 
 	VecDoub * newgrid = new VecDoub(nx_);
-	int imid = (nx_ - 1) / 2;
 
-	(*newgrid)[imid] = phiMid;
-	double dphi = (phiMid / 2) / (nx_ - 1);
+	// initialize with a cosine shape:
+	// phi = phiMid * cos(x * pi / 2 * xlim)
 
-	for (int i = imid; i >= 0; i--){
-		// TODO: linear profile for now, change it
-		(*newgrid)[i]          = (*newgrid)[i + 1] - dphi; // points to the left of iMid
-		(*newgrid)[nx_ - 1 - i] = (*newgrid)[i - 1] - dphi; // point to the right of iMid
+	for (int i = 0; i < nx_; i++){
+		double x = (*xGrid_)[i] / xlim_;
+		double phi = phiMid * cos(0.5 * PI * x);
 	}
+
 	assert((*newgrid)[0] == (*newgrid)[nx_ - 1]); // ensure potential is symetric
 	potential_ = newgrid;
 	return;
@@ -110,18 +111,29 @@ double Mirror::findPhiMid(double Rratio)
 
 void Mirror::setEField()
 {
+	VecDoub * EField = new VecDoub(xShift_-> size());
 	if (potential_ == nullptr){
-		setPotential();
+		setPotential(R_);
 	} else {
-		// TODO: Defined on shifted grid. Implement finite difference.
+		for (int i = 0; i < xShift_-> size(); i++){
+			double dphi = (*potential_)[i + 1] - (*potential_)[i];
+			double dx   = 2 * xlim_ / (nx_ - 1);
+			double E    = -1 * dphi / dx;
+			(*EField)[i] = E;
+		}
 	}
+	EField_ = EField;
 	return;
 }
 
 Vector Mirror::getE(const Vector& pos)
 {
-	//TODO implement this
-	Vector result;
+	if (EField_ == nullptr){
+		setEField();
+	}
+	INTERP1D electric((*xShift_), (*EField_));
+	double field = electric.interp(pos.x());
+	Vector result(field, 0, 0);
 	return result;
 }
 
@@ -147,7 +159,7 @@ bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
 	// hits the limit of computation box
-	if (pos.x() >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
+	if (abs(pos.x()) >= xlim_ || abs(pos.y()) >= ylim_ || abs(pos.z()) >= zlim_){
 		result = true;
 	}
 	return result;
