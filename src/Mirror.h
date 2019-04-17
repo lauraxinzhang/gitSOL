@@ -23,6 +23,7 @@
 // Programmer class includes
 #include "Vector.h"
 #include "Particle.h"
+#include "Struct.h"
 #include "Constants.h"
 
 class Mirror
@@ -33,7 +34,7 @@ class Mirror
 		 * \brief A constructor for uniform magnetic field
 		 *
 		 */
-		Mirror(double Ti, double Te, double xlim, double ylim, double zlim, int nx, double Buniform);
+		Mirror(double Ti, double Te, double Buniform, double R, double L, int nx);
 
 		~Mirror();
 
