@@ -139,7 +139,7 @@ Vector Mirror::getE(const Vector& pos)
 
 Vector Mirror::getB(const Vector& pos)
 {
-	double x = pos.x() - (xlim_ / 2); // shift to coordinates of magnetic field description.
+	double x = pos.x();
 	double y = pos.y();
 
 	double denom = R_ + pow( (x / L_), 4);
