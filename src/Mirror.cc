@@ -11,7 +11,7 @@
 
 #include "Mirror.h"
 
-Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx, )
+Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx)
 		: Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
 		  nx_(nx), 
 		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr)

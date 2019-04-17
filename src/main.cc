@@ -266,7 +266,7 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        Mirror mirror(5, 0.15, 0.15, 201, 0); // setting up a straight box
+        Mirror mirror(0.8, 1, 0.7, 4, 2, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
