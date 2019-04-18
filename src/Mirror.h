@@ -62,6 +62,12 @@ class Mirror
 		double findPhiMid(double Rratio);
 
 		/**
+		 * \brief Get local potential for arbitrary posion vector pos
+		 *
+		 */
+		double getPhi(const Vector& pos);
+
+		/**
 		 * \brief    Calculate electric field everywhere w/ linear finite difference
 		 * \details  E[i] = - (phi[i+1] - phi[i]) / dx 
 		 * \note     Potential grid needs to be already setup, if not, calls
@@ -88,11 +94,28 @@ class Mirror
 		 */
 		Vector getB();
 
+		double getModB(const Vector& pos)
+
 		/**
 		 * \brief Check whether pos is beyond the computation box.
 		 */
 		bool isLimiter(const Vector& pos);
 		
+		/** 
+		 * \brief Print Vector data along the x axis
+		 * \param func  A member function with void return type that returns funx(Vector) as a double
+		 * \param out   Output stream to direct the printed data
+		 * \note  Example for func: getB, getE
+		 */
+		void printData(Vector (*func)( const Vector& ), std::ostream &os);
+
+		/** 
+		 * \brief Print scalar data along the x axis
+		 * \param func  A member function with void return type that returns funx(Vector) as a double
+		 * \param out   Output stream to direct the printed data
+		 * \note  Example for func: getPhi, getModB
+		 */
+		void printData(double (*func)( const Vector& ), std::ostream &os);
 
 	private:
 		Mirror(); // disable default constructor

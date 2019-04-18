@@ -23,6 +23,7 @@
 #include "Particle.h"
 #include "Vector.h"
 #include "Orbit.h"
+#include "Constants.h"
 
 
 template <class T> // templated to be used with Orbit or Mirror class geometry
@@ -47,7 +48,23 @@ class Pusher{
 		 */
 		Vector pushSingleCyl(Particle& part, double dt, int iter, bool write, std::ofstream& coord);
 
-		// functions for NBI simulations
+//-------------------------------------  Mirror   --------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//---------------------------------------  NBI   ---------------------------------------------
+
 
 		/**
 		 * \brief burst out particles from spherical surface

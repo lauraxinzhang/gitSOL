@@ -109,6 +109,15 @@ double Mirror::findPhiMid(double Rratio)
 	return result;
 }
 
+double Mirror::getPhi(Vector& pos)
+{
+	if (potential_ == nullptr){
+		setPotential(R_);
+	}
+	INTERP1D potential((*xGrid_), potential_);
+	return potential.interp(pos.x());
+}
+
 void Mirror::setEField()
 {
 	VecDoub * EField = new VecDoub(xShift_-> size());
@@ -155,6 +164,12 @@ Vector Mirror::getB()
 	return result;
 }
 
+double Mirror::getModB(const Vector& pos)
+{
+	Vector BField = getB(pos);
+	return BField.mod();
+}
+
 bool Mirror::isLimiter(const Vector& pos)
 {
 	bool result = false;
@@ -165,4 +180,21 @@ bool Mirror::isLimiter(const Vector& pos)
 	return result;
 }
 
+void printData(Vector (*func)( const Vector& ), std::ostream &os)
+{
+	for (int i = 0; i < nx_; i++){
+		double xnow = (*xGrid_)[i];
+		Vector output = (*func)( Vector(xnow, 0, 0) );
+		os << xnow << ', '<< '(' << output << ')' << std::endl;
+	}
+}
+
+void printData(double (*func)( const Vector& ), std::ostream &os)
+{
+	for (int i = 0; i < nx_; i++){
+		double xnow = (*xGrid_)[i];
+		double output = (*func)( Vector(xnow, 0, 0) );
+		os << xnow << ', '<< output << std::endl;
+	}
+}
 
