@@ -180,21 +180,29 @@ bool Mirror::isLimiter(const Vector& pos)
 	return result;
 }
 
-void Mirror::printData(Vector func( const Vector& ), std::ostream &os)
+void Mirror::printData(std::string& option, std::ostream &os)
 {
-	for (int i = 0; i < nx_; i++){
-		double xnow = (*xGrid_)[i];
-		Vector output = func( Vector(xnow, 0, 0) );
-		os << xnow << ', '<< '(' << output << ')' << std::endl;
+	if (option == std::string("Bx")){
+		for (int i = 0; i < nx_; i++){
+			double xnow = (*xGrid_)[i];
+			double output = getB( Vector(xnow, 0, 0) ).x();
+			os << xnow << ', '<< output << std::endl;
+		}
 	}
+	else if (option == std::string("phi")) {
+		for (int i = 0; i < nx_; i++){
+			double xnow = (*xGrid_)[i];
+			double output = getPhi( Vector(xnow, 0, 0) );
+			os << xnow << ', '<< output << std::endl;
+		}
+	}
+	else if (option == std::string("modB")) {
+		for (int i = 0; i < nx_; i++){
+			double xnow = (*xGrid_)[i];
+			double output = getModB( Vector(xnow, 0, 0) );
+			os << xnow << ', '<< output << std::endl;
+		}
+	}	
 }
 
-void Mirror::printData(double func( const Vector& ), std::ostream &os)
-{
-	for (int i = 0; i < nx_; i++){
-		double xnow = (*xGrid_)[i];
-		double output = func( Vector(xnow, 0, 0) );
-		os << xnow << ', '<< output << std::endl;
-	}
-}
 

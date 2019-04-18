@@ -268,8 +268,7 @@ int main(int argc, const char** argv)
     else if (controller == std::string("-straight")){
         Mirror mirror(0.8, 1, 0.7, 4, 2, 101); // setting up a straight box
         
-        mirror.printData(mirror->getB, std::cerr);
-        mirror.printData(Mirror::getPhi, std::cerr);
+        mirror.printData(std::string("modB"), std::cerr);
 
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 

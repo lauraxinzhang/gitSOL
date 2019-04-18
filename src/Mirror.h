@@ -107,15 +107,7 @@ class Mirror
 		 * \param out   Output stream to direct the printed data
 		 * \note  Example for func: getB, getE
 		 */
-		void printData(Vector func( const Vector& ), std::ostream &os);
-
-		/** 
-		 * \brief Print scalar data along the x axis
-		 * \param func  A member function with void return type that returns funx(Vector) as a double
-		 * \param out   Output stream to direct the printed data
-		 * \note  Example for func: getPhi, getModB
-		 */
-		void printData(double func( const Vector& ), std::ostream &os);
+		void printData(std::string& option, std::ostream &os);
 
 	private:
 		Mirror(); // disable default constructor
