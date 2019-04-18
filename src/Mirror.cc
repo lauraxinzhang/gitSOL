@@ -28,7 +28,7 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx
 	double dx = 2 * xlim_ / (nx_ - 1); // extends to a xlim on each side.
 	VecDoub * newgrid = new VecDoub(nx);
 	(*newgrid)[0] = -1 * xlim_; 
-	for (int i = 0; i < nx_; i++){
+	for (int i = 1; i < nx_; i++){
 		(*newgrid)[i] = (*newgrid)[i - 1] + dx;
 	}
 	xGrid_ = newgrid;
@@ -84,7 +84,7 @@ void Mirror::setPotential()
 void Mirror::setPotential(double Rratio)
 {
 	double phiMid = findPhiMid(Rratio);
-
+	std::cerr << "Found phiMid: " << phiMid << std::endl;
 	VecDoub * newgrid = new VecDoub(nx_);
 
 	// initialize with a cosine shape:
@@ -93,9 +93,11 @@ void Mirror::setPotential(double Rratio)
 	for (int i = 0; i < nx_; i++){
 		double x = (*xGrid_)[i] / xlim_;
 		double phi = phiMid * cos(0.5 * PI * x);
+		(*newgrid)[i] = phi;
+		std::cerr << "x: " << x << " phi: " << phi << std::endl;
 	}
 
-	assert((*newgrid)[0] == (*newgrid)[nx_ - 1]); // ensure potential is symetric
+	//assert((*newgrid)[0] - (*newgrid)[nx_ - 1] < 1E-15); // ensure potential is symetric
 	potential_ = newgrid;
 	return;
 }
@@ -186,21 +188,22 @@ void Mirror::printData(std::string& option, std::ostream &os)
 		for (int i = 0; i < nx_; i++){
 			double xnow = (*xGrid_)[i];
 			double output = getB( Vector(xnow, 0, 0) ).x();
-			os << xnow << ', '<< output << std::endl;
+			os << xnow << "," << output << std::endl;
 		}
 	}
 	else if (option == std::string("phi")) {
 		for (int i = 0; i < nx_; i++){
 			double xnow = (*xGrid_)[i];
-			double output = getPhi( Vector(xnow, 0, 0) );
-			os << xnow << ', '<< output << std::endl;
+			double output = (*potential_)[i];
+		
+			os << xnow << "," << output << std::endl;
 		}
 	}
 	else if (option == std::string("modB")) {
 		for (int i = 0; i < nx_; i++){
 			double xnow = (*xGrid_)[i];
 			double output = getModB( Vector(xnow, 0, 0) );
-			os << xnow << ', '<< output << std::endl;
+			os << xnow << "," << output << std::endl;
 		}
 	}	
 }
