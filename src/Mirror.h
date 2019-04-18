@@ -92,9 +92,9 @@ class Mirror
 		/**
 		 * \brief Return uniform magnetic field if no argument is given
 		 */
-		Vector getB();
+		//Vector getB();
 
-		double getModB(const Vector& pos)
+		double getModB(const Vector& pos);
 
 		/**
 		 * \brief Check whether pos is beyond the computation box.
@@ -107,7 +107,7 @@ class Mirror
 		 * \param out   Output stream to direct the printed data
 		 * \note  Example for func: getB, getE
 		 */
-		void printData(Vector (*func)( const Vector& ), std::ostream &os);
+		void printData(Vector func( const Vector& ), std::ostream &os);
 
 		/** 
 		 * \brief Print scalar data along the x axis
@@ -115,7 +115,7 @@ class Mirror
 		 * \param out   Output stream to direct the printed data
 		 * \note  Example for func: getPhi, getModB
 		 */
-		void printData(double (*func)( const Vector& ), std::ostream &os);
+		void printData(double func( const Vector& ), std::ostream &os);
 
 	private:
 		Mirror(); // disable default constructor
