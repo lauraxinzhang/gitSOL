@@ -68,7 +68,7 @@ void Mirror::setGridShift()
 		xShift_ = xShift;
 	}
 	if (density_ == nullptr){
-		VecDoub * newgrid = new VecDoub(xShift->size());
+		VecDoub * newgrid = new VecDoub(xShift_->size());
 		density_ = newgrid; // same length as shifted grid, but initialized with all 0 entries
 	}
 	return;

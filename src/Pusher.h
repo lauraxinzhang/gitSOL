@@ -143,7 +143,8 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
 	    	// lastCrossed = (*geo_).sightline(part, lastCrossed);
 	    	
 	    	// Next line for Mirror only
-	    	(*geo_).addToBin(part.pos());
+		Vector position = part.pos();
+	    	(*geo_).addToBin(position);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -191,10 +192,10 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, bool wri
 	coord.open("midplaneBurst.out");
 	coord << std::setprecision(10);
 
-	Doub mass = MI * (1 - species) + ME * species;
+	Doub mass = MI * (1 - spec) + ME * spec;
 	Doub vbar = sqrt(temperature  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 
-	Doub Bmin = (*geo).getModB(Vector(0, 0, 0));
+	Doub Bmin = (*geo_).getModB(Vector(0, 0, 0));
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Bmin; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
@@ -204,9 +205,9 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, bool wri
 
 	for (int ipart = 0; ipart < nparts; ipart++){
 
-		vx = distribution(generator); // generate 3 normal distributed velocities.
-		vy =  distribution(generator);
-		vz = distribution(generator);
+		double vx = distribution(generator); // generate 3 normal distributed velocities.
+		double vy =  distribution(generator);
+		double vz = distribution(generator);
 
 		Vector veli(vx, vy, vz);
 		Vector posi(0, 0, 0);
