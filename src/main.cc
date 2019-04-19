@@ -267,11 +267,11 @@ int main(int argc, const char** argv)
     }
     else if (controller == std::string("-straight")){
         Mirror mirror(0.8, 1, 1, 4, 2, 101); // setting up a straight box
-        
-        std::string option("phi");
-	mirror.printData(option, std::cerr);
-
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
+
+        pusher.midplaneBurst(20, 0, 10, 1);
+        std::string option("phi");
+        mirror.printData(option, std::cerr);
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

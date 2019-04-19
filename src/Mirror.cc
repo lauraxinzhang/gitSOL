@@ -14,7 +14,7 @@
 Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx)
 		: Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
 		  nx_(nx), 
-		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr)
+		  xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr), density_(nullptr)
 {
 	// make sure nx is odd
 	assert(nx % 2 == 1);
@@ -25,7 +25,7 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx
 	zlim_ = L;
 
 	// fill in x grid
-	double dx = 2 * xlim_ / (nx_ - 1); // extends to a xlim on each side.
+	double dx = gridSize();
 	VecDoub * newgrid = new VecDoub(nx);
 	(*newgrid)[0] = -1 * xlim_; 
 	for (int i = 1; i < nx_; i++){
@@ -36,6 +36,7 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx
 
 	setGridShift();
 	assert(xShift_ != nullptr);
+	assert(density_ != nullptr);
 
 	//fill in potential grid
 	setPotential(R_);
@@ -60,12 +61,15 @@ void Mirror::setGridShift()
 		// create shifted x grids (right shift)
 		VecDoub * xShift = new VecDoub( xGrid_ -> begin(), --xGrid_ -> end() );
 		assert(xShift->size() == nx_ - 1);
-
-		double dx = 2 * xlim_ / (nx_ - 1); // extends to a xlim on each side.
+		double dx = gridSize(); // extends to a xlim on each side.
 		for (int i = 0; i < nx_ - 1; ++i){
 			(*xShift)[i] += dx / 2; // shift by half a grid size
 		}
 		xShift_ = xShift;
+	}
+	if (density_ == nullptr){
+		VecDoub * newgrid = new VecDoub(xShift->size());
+		density_ = newgrid; // same length as shifted grid, but initialized with all 0 entries
 	}
 	return;
 }
@@ -96,8 +100,6 @@ void Mirror::setPotential(double Rratio)
 		(*newgrid)[i] = phi;
 		std::cerr << "x: " << x << " phi: " << phi << std::endl;
 	}
-
-	//assert((*newgrid)[0] - (*newgrid)[nx_ - 1] < 1E-15); // ensure potential is symetric
 	potential_ = newgrid;
 	return;
 }
@@ -128,7 +130,7 @@ void Mirror::setEField()
 	} else {
 		for (int i = 0; i < xShift_-> size(); i++){
 			double dphi = (*potential_)[i + 1] - (*potential_)[i];
-			double dx   = 2 * xlim_ / (nx_ - 1);
+			double dx   = gridSize();
 			double E    = -1 * dphi / dx;
 			(*EField)[i] = E;
 		}
@@ -160,16 +162,15 @@ Vector Mirror::getB(const Vector& pos)
 	return result;
 }
 
-//Vector Mirror::getB()
-//{
-//	Vector result(Buniform_, 0, 0);
-//	return result;
-//}
-
 double Mirror::getModB(const Vector& pos)
 {
 	Vector BField = getB(pos);
 	return BField.mod();
+}
+
+double Mirror::gridSize()
+{
+	return 2 * xlim_ / (nx_ - 1);
 }
 
 bool Mirror::isLimiter(const Vector& pos)
@@ -181,6 +182,16 @@ bool Mirror::isLimiter(const Vector& pos)
 	}
 	return result;
 }
+
+void Mirror::addToBin(Vector& pos)
+{
+	double xnow = pos.x();
+	double dx = gridSize(); // extends to a xlim on each side.
+	int index = (int)(xnow + xlim_)/dx;
+	(*density_)[index]++;
+	return;
+}
+
 
 void Mirror::printData(std::string& option, std::ostream &os)
 {
@@ -194,8 +205,7 @@ void Mirror::printData(std::string& option, std::ostream &os)
 	else if (option == std::string("phi")) {
 		for (int i = 0; i < nx_; i++){
 			double xnow = (*xGrid_)[i];
-			double output = (*potential_)[i];
-		
+			double output = (*potential_)[i];		
 			os << xnow << "," << output << std::endl;
 		}
 	}
@@ -203,6 +213,13 @@ void Mirror::printData(std::string& option, std::ostream &os)
 		for (int i = 0; i < nx_; i++){
 			double xnow = (*xGrid_)[i];
 			double output = getModB( Vector(xnow, 0, 0) );
+			os << xnow << "," << output << std::endl;
+		}
+	}
+	else if (option == std::string("density")){
+		for (int i = 0; i < nx_; i++){
+			double xnow = (*xGrid_)[i];
+			double output = (*density_)[i];
 			os << xnow << "," << output << std::endl;
 		}
 	}	

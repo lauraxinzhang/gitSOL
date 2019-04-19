@@ -90,24 +90,35 @@ class Mirror
 		Vector getB(const Vector& pos);
 
 		/**
-		 * \brief Return uniform magnetic field if no argument is given
+		 * \brief Gets mod(B) at given location
 		 */
-		//Vector getB();
-
 		double getModB(const Vector& pos);
+
+		/**
+		 * \brief  Returns grid spacing dx
+		 */
+		double gridSize();
 
 		/**
 		 * \brief Check whether pos is beyond the computation box.
 		 */
 		bool isLimiter(const Vector& pos);
 		
+		/**
+		 * \brief  Calculates which grid the particle is in and increment the 
+		 *         corresponding value in density_
+		 */
+		void addToBin(Vector& pos);
+
 		/** 
 		 * \brief Print Vector data along the x axis
 		 * \param func  A member function with void return type that returns funx(Vector) as a double
 		 * \param out   Output stream to direct the printed data
-		 * \note  Example for func: getB, getE
+		 * \note  options include: Bx, phi, modB, density
 		 */
 		void printData(std::string& option, std::ostream &os);
+
+
 
 	private:
 		Mirror(); // disable default constructor
@@ -131,7 +142,7 @@ class Mirror
 		VecDoub * potential_; // potential is only a function of x
 		VecDoub * EField_;
 
-
+		VecDoub * density_; // defined on xShift_
 
 };
 
