@@ -271,34 +271,68 @@ int main(int argc, const char** argv)
         int nparts, tmax;
         bool write;
 
-        std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
+        if (args.size() == 10){
+            Ti = stod(args.front());
+            args.pop_front();
 
-        std::cerr << "Ti: " << std::endl;
-        std::cin >> Ti;
-        std::cerr << "Te: " << std::endl;
-        std::cin >> Te;
-        std::cerr << "Buniform (in Tesla): " << std::endl;
-        std::cin >> Buniform;
+            Te = stod(args.front());
+            args.pop_front();
 
-        std::cerr << "Mirror ratio:" << std::endl;
-        std::cin >> R;
-        std::cerr << "Length scale of mirror:" << std::endl;
-        std::cin >> L;
-        // nx is default to be 101.
-        nx = 101;
+            Buniform = stoi(args.front());
+            args.pop_front();
 
-        std::cerr << "Now for particle pushing. " << std::endl;
-        std::cerr << "energy of particles to be pushed: " << std::endl;
-        std::cin >> temperature;
-        std::cerr << "species of particle, 1 for e, 0 for p : " << std::endl;
-        std::cin >> spec;
-        std::cerr << "Number of particles sourced from Maxwellian: " << std::endl;
-        std::cin >> nparts;
-        std::cerr << "Total time of simulation (in seconds): " << std::endl;
-        std::cin >> tmax;
-        std::cerr << "Write particle coordinates to file? 1 for yes, 0 for no." << std::endl;
-        std::cin >> write;
-        std::cerr << "All set." << std::endl;
+            R = stod(args.front());
+            args.pop_front();
+
+            L = stod(args.front());
+            args.pop_front();
+
+            nx = 101;
+
+            temperature = stod(args.front());
+            args.pop_front();
+
+            spec = stod(args.front());
+            args.pop_front();
+
+            nparts = stod(args.front());
+            args.pop_front();
+
+            tmax = stod(args.front());
+            args.pop_front();
+
+            write = stoi(args.front());
+            args.pop_front();
+        } else {
+            std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
+
+            std::cerr << "Ti: " << std::endl;
+            std::cin >> Ti;
+            std::cerr << "Te: " << std::endl;
+            std::cin >> Te;
+            std::cerr << "Buniform (in Tesla): " << std::endl;
+            std::cin >> Buniform;
+
+            std::cerr << "Mirror ratio:" << std::endl;
+            std::cin >> R;
+            std::cerr << "Length scale of mirror:" << std::endl;
+            std::cin >> L;
+            // nx is default to be 101.
+            nx = 101;
+
+            std::cerr << "Now for particle pushing. " << std::endl;
+            std::cerr << "energy of particles to be pushed: " << std::endl;
+            std::cin >> temperature;
+            std::cerr << "species of particle, 1 for e, 0 for p : " << std::endl;
+            std::cin >> spec;
+            std::cerr << "Number of particles sourced from Maxwellian: " << std::endl;
+            std::cin >> nparts;
+            std::cerr << "Total time of simulation (in seconds): " << std::endl;
+            std::cin >> tmax;
+            std::cerr << "Write particle coordinates to file? 1 for yes, 0 for no." << std::endl;
+            std::cin >> write;
+            std::cerr << "All set." << std::endl;
+        }
 
         Mirror mirror(Ti, Te, Buniform, R, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
