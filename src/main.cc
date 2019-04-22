@@ -266,10 +266,44 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        Mirror mirror(0.8, 1, 20, 1, 2, 101); // setting up a straight box
+        double Ti, Te, Buniform, R, L, nx, temperature;
+        bool spec;
+        int nparts, tmax;
+        bool write;
+
+        std::cerr << "Input argument list incomplete. Let's try again:" << std::endl;
+
+        std::cerr << "Ti: " << std::endl;
+        std::cin >> Ti;
+        std::cerr << "Te: " << std::endl;
+        std::cin >> Te;
+        std::cerr << "Buniform (in Tesla): " << std::endl;
+        std::cin >> Buniform;
+
+        std::cerr << "Mirror ratio:" << std::endl;
+        std::cin >> R;
+        std::cerr << "Length scale of mirror:" << std::endl;
+        std::cin >> L;
+        // nx is default to be 101.
+        nx = 101;
+
+        std::cerr << "Now for particle pushing. " << std::endl;
+        std::cerr << "energy of particles to be pushed: " << std::endl;
+        std::cin >> temperature;
+        std::cerr << "species of particle, 1 for e, 0 for p : " << std::endl;
+        std::cin >> spec;
+        std::cerr << "Number of particles sourced from Maxwellian: " << std::endl;
+        std::cin >> nparts;
+        std::cerr << "Total time of simulation (in seconds): " << std::endl;
+        std::cin >> tmax;
+        std::cerr << "Write particle coordinates to file? 1 for yes, 0 for no." << std::endl;
+        std::cin >> write;
+        std::cerr << "All set." << std::endl;
+
+        Mirror mirror(Ti, Te, Buniform, R, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        pusher.midplaneBurst(20, 0, 500, 1);
+        pusher.midplaneBurst(temperature, spec, nparts, tmax, write);
         std::string option("density");
         mirror.printData(option, std::cerr);
 

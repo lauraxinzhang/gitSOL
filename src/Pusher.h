@@ -53,7 +53,7 @@ class Pusher{
 		/**
 		 * \brief Simple particle push, with particles sourced at x=0
 		 */
-		void midplaneBurst(double temperature, int spec, int nparts, bool write);
+		void midplaneBurst(double temperature, int spec, int nparts,  double tmax, bool write);
 
 //---------------------------------------  NBI   ---------------------------------------------
 
@@ -186,7 +186,7 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
 
 //-------------------------------------  Mirror   --------------------------------------------
 template <class T>
-void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, bool write)
+void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double tmax, bool write)
 {
 	std::ofstream coord;
 	coord.open("midplaneBurst.out");
@@ -195,8 +195,10 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, bool wri
 	Doub mass = MI * (1 - spec) + ME * spec;
 	Doub vbar = sqrt(temperature  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 
-	Doub Bmin = (*geo_).getModB(Vector(0, 0, 0));
-	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Bmin; // another logical, constants from NRL p28
+	// Doub Bmin = (*geo_).getModB(Vector(0, 0, 0));
+	// decoupling dt from magnetic field
+	Doub Btypical = 1; // magnetic field on the order of unity Tesla.
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
 
