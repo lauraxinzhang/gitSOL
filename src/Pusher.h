@@ -201,6 +201,7 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
+	int iter = (int) (tmax/dt);
 
 	std::default_random_engine generator(int(time(NULL)));
     std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
@@ -215,7 +216,7 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 		Vector posi(0, 0, 0);
     	Particle part(posi, veli, spec);
 
-    	pushSingle(part, dt, nparts, write, coord);
+    	pushSingle(part, dt, iter, write, coord);
 	}
 	return;
 }
