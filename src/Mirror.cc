@@ -88,7 +88,7 @@ void Mirror::setPotential()
 void Mirror::setPotential(double Rratio)
 {
 	double phiMid = findPhiMid(Rratio);
-	std::cerr << "Found phiMid: " << phiMid << std::endl;
+	//std::cerr << "Found phiMid: " << phiMid << std::endl;
 	VecDoub * newgrid = new VecDoub(nx_);
 
 	// initialize with a cosine shape:
@@ -98,7 +98,7 @@ void Mirror::setPotential(double Rratio)
 		double x = (*xGrid_)[i] / xlim_;
 		double phi = phiMid * cos(0.5 * PI * x);
 		(*newgrid)[i] = phi;
-		std::cerr << "x: " << x << " phi: " << phi << std::endl;
+		//std::cerr << "x: " << x << " phi: " << phi << std::endl;
 	}
 	potential_ = newgrid;
 	return;
@@ -187,7 +187,7 @@ void Mirror::addToBin(Vector& pos)
 {
 	double xnow = pos.x();
 	double dx = gridSize(); // extends to a xlim on each side.
-	int index = (int)(xnow + xlim_)/dx;
+	int index = (int) ( (xnow + xlim_)/dx );
 	(*density_)[index]++;
 	return;
 }
@@ -217,8 +217,8 @@ void Mirror::printData(std::string& option, std::ostream &os)
 		}
 	}
 	else if (option == std::string("density")){
-		for (int i = 0; i < nx_; i++){
-			double xnow = (*xGrid_)[i];
+		for (int i = 0; i < xShift_ -> size(); i++){
+			double xnow = (*xShift_)[i];
 			double output = (*density_)[i];
 			os << xnow << "," << output << std::endl;
 		}
