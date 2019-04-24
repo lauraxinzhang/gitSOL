@@ -92,4 +92,119 @@ void Mirror::setSightlines(const std::string& inputSL, int rows)
     return;
 }
 
+//---------------------------------------  NBI   ---------------------------------------------
+
+
+template <class T>
+void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
+{
+	std::ofstream coord;
+	coord.open("coordBurst.out");
+	coord << std::setprecision(10);
+
+	std::default_random_engine generator(int(time(NULL)));
+	// std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
+
+	for (int isource = 0; isource < nsources; isource++){
+		// Vector posi(xCalc, yRand, zRand);
+		// Vector veli((-1*xCalc + radius), -1* yRand, -1*zRand);
+		Vector posi = sphere(radius, ylim, generator);
+		Vector veli = sphereNormal(radius, posi).normalize();
+
+		//std::cerr << posi << std::endl;
+		//std::cerr << veli << std::endl;
+		Particle part(posi, veli, 1, 0); // one particle per source for now
+		pushSingle(part, 0.001, 4000, write, coord);
+
+	}
+
+	return;
+}
+
+template <class T>
+void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsources, int partPerS, bool write)
+{
+	std::ofstream conic;
+	conic.open("conicBurst.out");
+	conic << std::setprecision(10);
+
+	std::default_random_engine generator(int(time(NULL))); // initialize outside loop to avoid overseeding
+	
+	// std::uniform_real_distribution<double> location(-1 * ylim, ylim); // for particle sources
+	// std::normal_distribution<double> pitchAngle(0, dtheta);
+
+	for (int iS = 0; iS < nsources; iS++){
+		Vector posi = sphere(radius, ylim, generator);
+	//	std::cerr << "source #" << iS << std::endl;
+		for (int n = 0; n < partPerS; n++){
+			Vector veli = diverge(radius, posi, dtheta, generator);
+			//std::cerr << posi << std::endl;
+			//std::cerr << veli << std::endl;
+			
+			Particle part(posi, veli, 1, 0);
+			pushSingle(part, 0.001, 3000, write, conic);
+		}
+	}
+	return;
+}
+
+template <class T>
+Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine& generator)
+{
+	std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
+
+	double yRand = distribution(generator);	
+	double zRand = distribution(generator);
+	while (yRand * yRand + zRand * zRand >= ylim * ylim){
+		// if it's not in the circle, try again.
+		yRand = distribution(generator);
+        zRand = distribution(generator);
+    }
+	// double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
+    double xCalc = sqrt(radius * radius - yRand * yRand - zRand * zRand) - radius; // flip beam source to the right
+
+	Vector posi(xCalc, yRand, zRand);
+	return posi;
+}
+
+template <class T>
+Vector Pusher<T>::sphereNormal(double radius, Vector pos)
+{
+	// double x = radius - pos.x();
+	double x = 0 - radius - pos.x(); // flip beam source to the right
+	double y = -1 * pos.y();
+	double z = -1 * pos.z();
+	Vector result(x, y, z);
+	return result;
+}
+
+template <class T>
+Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::default_random_engine& generator)
+{
+	std::normal_distribution<double> pitchAngle(0, dtheta);
+	std::uniform_real_distribution<double> uni(-1, 1);
+
+	Vector posNorm = pos.normalize();
+	double x0 = posNorm.x();
+	double y0 = posNorm.y();
+	double z0 = posNorm.z();
+
+	double b = uni(generator);
+	double c = uni(generator);
+	// double a = (radius * x0 - b * y0 - c * z0) / (x0 - radius);
+	double a = (0 - radius * x0 - b * y0 - c * z0) / (x0 + radius); // flipping beam source
+
+
+	Vector tangent(a - x0, b - y0, c - z0); // a randomly generated vector tangent to sphere at pos
+	Vector velNorm = sphereNormal(radius, pos).normalize(); // normal vector of sphere at pos
+
+	double theta = pitchAngle(generator);
+	Vector vperp = tangent.normalize() * tan(theta);
+
+	Vector result = velNorm + vperp;
+
+	return result.normalize();
+}
+
+
 
