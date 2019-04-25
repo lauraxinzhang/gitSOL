@@ -19,10 +19,13 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <omp.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 #include "Particle.h"
 #include "Vector.h"
-#include "Orbit.h"
+// #include "Orbit.h"
 #include "Constants.h"
 
 
@@ -55,8 +58,14 @@ class Pusher{
 		 */
 		void midplaneBurst(double temperature, int spec, int nparts,  double tmax, bool write);
 
-		void losscone(double energy, bool spec, int nparts, double Tratio, double tmax, bool write)
+		/**
+		 * \brief A parallel particle pusher, collects lost and trapped particles
+		 */
+		double losscone(double energy, bool spec, int nparts, double tmax, bool write)
 
+		/**
+		 * \brief Generates velocity vector from a Gaussian distribution.
+		 */
 		Vector gaussian(double center, double vbar, std::default_random_engine& generator);
 
 //---------------------------------------  NBI   ---------------------------------------------
@@ -135,6 +144,10 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     	Vector ENow = (*geo_).getE(posNow);
 
     	part.move(ENow, BNow, dt);
+    	// Next line for Mirror only
+		Vector position = part.pos();
+    	(*geo_).addToBin(position);
+
     	//int lastCrossed = 26;// start at the last sightline (first to cross)
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
@@ -142,13 +155,9 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     		// << "iterations." << std::endl;
     		break;
     	}
-    	if (true){
+    	if (write){ // always collect for density calculations
 	    	// Next line for NBI only
 	    	// lastCrossed = (*geo_).sightline(part, lastCrossed);
-	    	
-	    	// Next line for Mirror only
-			Vector position = part.pos();
-	    	(*geo_).addToBin(position);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -220,7 +229,7 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 }
 
 template <class T>
-void Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool write)
+double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool write)
 {
 	std::list<Vector> initVel;
 	std::list<Vector> finlVel;
@@ -234,16 +243,16 @@ void Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
+	int maxiter = (int) (tmax / dt);
 
 	std::default_random_engine generator(int(time(NULL)));
-	Vector posi(0, 0, 0);
-
+	
 	#pragma omp parallel
 	{
 		generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
 
-		// TODO: check initialization list
-		Vector veli, posi, posNow, BNow, ENow, vPara, vPerp, vGC;
+		Vector veli, posNow, BNow, ENow, vPara, vPerp, vGC;
+		Vector posi(0, 0, 0);
 		Particle part;
 		part.setSpec(spec);
 
@@ -251,8 +260,8 @@ void Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool
 	    std::list<Vector> finlVel_private;
 	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
 
-		#pragma omp for private(part, er, ephi, ez, vr, vphi, vz, veli, \
-		posi, xNow, yNow, zNow, rNow, phiNow, diff, posNow, BNow, vGC) // TODO: check this list		
+		#pragma omp for private(part, veli, \
+		posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
 			for (int i=0; i < nparts; ++i ){
 				veli = gaussian(0, vbar, generator);
 				part.setPos(posi);
@@ -266,19 +275,12 @@ void Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool
 
 			    initVel_private.push_back(vGC);
 
-			    //TODO: calculate maxiter based on dt and tmax;
 			    for (int step = 0; step < maxiter; ++step){ 
 					posNow = part.pos();
 			    	BNow = (*geo_).getB(posNow);
 	    			ENow = (*geo_).getE(posNow);
 
 			    	part.move(ENow, BNow, dt);
-			    	// part.moveCyl(EField, BNow, dt);
-
-			    	xNow = part.pos().x();
-			    	yNow = part.pos().y();
-			    	zNow = part.pos().z();
-
 			    	if (isLimiter(posNow)){
 			    		part.lost();
 					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
@@ -293,13 +295,18 @@ void Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool
 			// collect everything from all threads back into the main structure
 			initVel.insert(initVel.end(), initVel_private.begin(), initVel_private.end());
 			finlVel.insert(finlVel.end(), finlVel_private.begin(), finlVel_private.end());
-
 			paraVel.insert(paraVel.end(), paraVel_private.begin(), paraVel_private.end());
 	}
 	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
 	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
 	//TODO: implement outputting
-	return;
+
+	Doub gammaOut = 0;
+	while(!paraVel.empty()){
+		gammaOut += paraVel.front();
+		paraVel.pop_front();
+	}	
+	return gammaOut;
 }
 
 template <class T>
