@@ -636,7 +636,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	if (step % 1000 == 0){ // output every 500 steps
+    	if (step % 1000 == 0){ // output every 1000 steps
     	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;

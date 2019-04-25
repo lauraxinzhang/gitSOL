@@ -19,10 +19,13 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <omp.h>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 
 #include "Particle.h"
 #include "Vector.h"
-#include "Orbit.h"
+// #include "Orbit.h"
 #include "Constants.h"
 
 
@@ -54,6 +57,16 @@ class Pusher{
 		 * \brief Simple particle push, with particles sourced at x=0
 		 */
 		void midplaneBurst(double temperature, int spec, int nparts,  double tmax, bool write);
+
+		/**
+		 * \brief A parallel particle pusher, collects lost and trapped particles
+		 */
+		double losscone(double energy, bool spec, int nparts, double tmax, bool write)
+
+		/**
+		 * \brief Generates velocity vector from a Gaussian distribution.
+		 */
+		Vector gaussian(double center, double vbar, std::default_random_engine& generator);
 
 //---------------------------------------  NBI   ---------------------------------------------
 
@@ -131,6 +144,10 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     	Vector ENow = (*geo_).getE(posNow);
 
     	part.move(ENow, BNow, dt);
+    	// Next line for Mirror only
+		Vector position = part.pos();
+    	(*geo_).addToBin(position);
+
     	//int lastCrossed = 26;// start at the last sightline (first to cross)
 
     	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
@@ -138,13 +155,9 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     		// << "iterations." << std::endl;
     		break;
     	}
-    	if (write){
+    	if (write){ // always collect for density calculations
 	    	// Next line for NBI only
 	    	// lastCrossed = (*geo_).sightline(part, lastCrossed);
-	    	
-	    	// Next line for Mirror only
-		Vector position = part.pos();
-	    	(*geo_).addToBin(position);
 	    }
     	if (write && (i % 100 == 0)){
     		coord << part.pos() << std::endl;
@@ -204,15 +217,10 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 	int iter = (int) (tmax/dt);
 
 	std::default_random_engine generator(int(time(NULL)));
-    std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
-
+    
 	for (int ipart = 0; ipart < nparts; ipart++){
 
-		double vx = distribution(generator); // generate 3 normal distributed velocities.
-		double vy =  distribution(generator);
-		double vz = distribution(generator);
-
-		Vector veli(vx, vy, vz);
+		Vector veli = gaussian(0, vbar, generator);
 		Vector posi(0, 0, 0);
     	Particle part(posi, veli, spec);
 
@@ -221,123 +229,97 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 	return;
 }
 
-
-//---------------------------------------  NBI   ---------------------------------------------
-
-/**
- * Uncomment to use.
- *
 template <class T>
-void Pusher<T>::gridBurst(double radius, double ylim, int nsources, bool write)
+double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bool write)
 {
-	std::ofstream coord;
-	coord.open("coordBurst.out");
-	coord << std::setprecision(10);
+	std::list<Vector> initVel;
+	std::list<Vector> finlVel;
+	std::list<Doub> paraVel;
+
+	Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
+	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
+	
+	// decoupling dt from magnetic field
+	Doub Btypical = 1; // magnetic field on the order of unity Tesla.
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
+	Doub TLamor = 1/fLamor;
+	Doub dt = TLamor / NPERORBIT;
+	int maxiter = (int) (tmax / dt);
 
 	std::default_random_engine generator(int(time(NULL)));
-	// std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
-
-	for (int isource = 0; isource < nsources; isource++){
-		// Vector posi(xCalc, yRand, zRand);
-		// Vector veli((-1*xCalc + radius), -1* yRand, -1*zRand);
-		Vector posi = sphere(radius, ylim, generator);
-		Vector veli = sphereNormal(radius, posi).normalize();
-
-		//std::cerr << posi << std::endl;
-		//std::cerr << veli << std::endl;
-		Particle part(posi, veli, 1, 0); // one particle per source for now
-		pushSingle(part, 0.001, 4000, write, coord);
-
-	}
-
-	return;
-}
-
-template <class T>
-void Pusher<T>::conicBurst(double radius, double ylim, double dtheta, int nsources, int partPerS, bool write)
-{
-	std::ofstream conic;
-	conic.open("conicBurst.out");
-	conic << std::setprecision(10);
-
-	std::default_random_engine generator(int(time(NULL))); // initialize outside loop to avoid overseeding
 	
-	// std::uniform_real_distribution<double> location(-1 * ylim, ylim); // for particle sources
-	// std::normal_distribution<double> pitchAngle(0, dtheta);
+	#pragma omp parallel
+	{
+		generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
 
-	for (int iS = 0; iS < nsources; iS++){
-		Vector posi = sphere(radius, ylim, generator);
-	//	std::cerr << "source #" << iS << std::endl;
-		for (int n = 0; n < partPerS; n++){
-			Vector veli = diverge(radius, posi, dtheta, generator);
-			//std::cerr << posi << std::endl;
-			//std::cerr << veli << std::endl;
-			
-			Particle part(posi, veli, 1, 0);
-			pushSingle(part, 0.001, 3000, write, conic);
-		}
+		Vector veli, posNow, BNow, ENow, vPara, vPerp, vGC;
+		Vector posi(0, 0, 0);
+		Particle part;
+		part.setSpec(spec);
+
+	    std::list<Vector> initVel_private; // A list of (vpara, vperp)
+	    std::list<Vector> finlVel_private;
+	    std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
+
+		#pragma omp for private(part, veli, \
+		posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
+			for (int i=0; i < nparts; ++i ){
+				veli = gaussian(0, vbar, generator);
+				part.setPos(posi);
+			    part.setVel(veli);
+
+				BNow = (*geo_).getB(posi);
+
+			    vPara = veli.parallel(BNow);
+			    vPerp = veli.perp(BNow);
+			    vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
+
+			    initVel_private.push_back(vGC);
+
+			    for (int step = 0; step < maxiter; ++step){ 
+					posNow = part.pos();
+			    	BNow = (*geo_).getB(posNow);
+	    			ENow = (*geo_).getE(posNow);
+
+			    	part.move(ENow, BNow, dt);
+			    	if (isLimiter(posNow)){
+			    		part.lost();
+					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
+			    		// collect the final paralell velocity here
+					    vPara = part.vel().parallel(BNow);
+					    paraVel_private.push_back(vPara.mod());
+			    		break;
+			    	}
+			    }
+			}
+		#pragma omp critical
+			// collect everything from all threads back into the main structure
+			initVel.insert(initVel.end(), initVel_private.begin(), initVel_private.end());
+			finlVel.insert(finlVel.end(), finlVel_private.begin(), finlVel_private.end());
+			paraVel.insert(paraVel.end(), paraVel_private.begin(), paraVel_private.end());
 	}
-	return;
+	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
+	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
+	//TODO: implement outputting
+
+	Doub gammaOut = 0;
+	while(!paraVel.empty()){
+		gammaOut += paraVel.front();
+		paraVel.pop_front();
+	}	
+	return gammaOut;
 }
 
 template <class T>
-Vector Pusher<T>::sphere(double radius, double ylim, std::default_random_engine& generator)
+Vector Pusher<T>::gaussian(double center, double vbar, std::default_random_engine& generator)
 {
-	std::uniform_real_distribution<double> distribution(-1 * ylim, ylim);
+	std::normal_distribution<double> distribution(center, vbar); // generate a Gaussian distributed velocity
+	double vx = distribution(generator); // generate 3 normal distributed velocities.
+	double vy =  distribution(generator);
+	double vz = distribution(generator);
 
-	double yRand = distribution(generator);	
-	double zRand = distribution(generator);
-	while (yRand * yRand + zRand * zRand >= ylim * ylim){
-		// if it's not in the circle, try again.
-		yRand = distribution(generator);
-        zRand = distribution(generator);
-    }
-	// double xCalc = -1 * sqrt(radius * radius - yRand * yRand - zRand * zRand) + radius;
-    double xCalc = sqrt(radius * radius - yRand * yRand - zRand * zRand) - radius; // flip beam source to the right
-
-	Vector posi(xCalc, yRand, zRand);
-	return posi;
+	Vector vel(vx, vym vz);
+	return vel;
 }
-
-template <class T>
-Vector Pusher<T>::sphereNormal(double radius, Vector pos)
-{
-	// double x = radius - pos.x();
-	double x = 0 - radius - pos.x(); // flip beam source to the right
-	double y = -1 * pos.y();
-	double z = -1 * pos.z();
-	Vector result(x, y, z);
-	return result;
-}
-
-template <class T>
-Vector Pusher<T>::diverge(double radius, Vector& pos, double dtheta, std::default_random_engine& generator)
-{
-	std::normal_distribution<double> pitchAngle(0, dtheta);
-	std::uniform_real_distribution<double> uni(-1, 1);
-
-	Vector posNorm = pos.normalize();
-	double x0 = posNorm.x();
-	double y0 = posNorm.y();
-	double z0 = posNorm.z();
-
-	double b = uni(generator);
-	double c = uni(generator);
-	// double a = (radius * x0 - b * y0 - c * z0) / (x0 - radius);
-	double a = (0 - radius * x0 - b * y0 - c * z0) / (x0 + radius); // flipping beam source
-
-
-	Vector tangent(a - x0, b - y0, c - z0); // a randomly generated vector tangent to sphere at pos
-	Vector velNorm = sphereNormal(radius, pos).normalize(); // normal vector of sphere at pos
-
-	double theta = pitchAngle(generator);
-	Vector vperp = tangent.normalize() * tan(theta);
-
-	Vector result = velNorm + vperp;
-
-	return result.normalize();
-}
-*/
-
 
 #endif // PUSHER_H_INCLUDED

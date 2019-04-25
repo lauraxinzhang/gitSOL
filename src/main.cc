@@ -341,6 +341,9 @@ int main(int argc, const char** argv)
         std::string option("density");
         mirror.printData(option, std::cerr);
 
+        double currentOut = pusher.losscone(temperature, spec, nparts, tmax, write);
+        std::cerr << "output current: " << currentOut << std::endl;
+
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);
     }
