@@ -61,7 +61,7 @@ class Pusher{
 		/**
 		 * \brief A parallel particle pusher, collects lost and trapped particles
 		 */
-		double losscone(double energy, bool spec, int nparts, double tmax, bool write)
+		double losscone(double energy, bool spec, int nparts, double tmax, bool write);
 
 		/**
 		 * \brief Generates velocity vector from a Gaussian distribution.
@@ -140,29 +140,28 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
 	for (int i = 0; i < iter; i++){
 	//std::cerr << "pushing iteration: " << i << std::endl;	
 		Vector posNow = part.pos();
-    	Vector BNow = (*geo_).getB(posNow);
-    	Vector ENow = (*geo_).getE(posNow);
-
-    	part.move(ENow, BNow, dt);
-    	// Next line for Mirror only
-		Vector position = part.pos();
-    	(*geo_).addToBin(position);
-
+    		Vector BNow = (*geo_).getB(posNow);
+    		Vector ENow = (*geo_).getE(posNow);
+		if (write && (i % 500 == 0)){
+                	coord << part.pos() << std::endl;
+        	}
+    		part.move(ENow, BNow, dt);
     	//int lastCrossed = 26;// start at the last sightline (first to cross)
 
-    	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
+    		if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
     		// std::cerr << "particle lost to limiter after" << i \
     		// << "iterations." << std::endl;
-    		break;
-    	}
-    	if (write){ // always collect for density calculations
+    			break;
+    		} else {
+			// Next line for Mirror only
+                	Vector position = part.pos();
+                	(*geo_).addToBin(position);
+        	}
+    		if (write){ // always collect for density calculations
 	    	// Next line for NBI only
 	    	// lastCrossed = (*geo_).sightline(part, lastCrossed);
-	    }
-    	if (write && (i % 100 == 0)){
-    		coord << part.pos() << std::endl;
-    	}
-	}
+	    	}	
+    	}	
 	return part.pos();
 }
 
@@ -171,23 +170,22 @@ Vector Pusher<T>::pushSingleCyl(Particle& part, double dt, int iter, bool write,
 {
 	for (int i = 0; i < iter; i++){
 		Vector posNow = part.pos();
-    	Vector BNow = (*geo_).getB(posNow);
-    	Vector ENow = (*geo_).getE(posNow);
+    		Vector BNow = (*geo_).getB(posNow);
+    		Vector ENow = (*geo_).getE(posNow);
+		if (write && (i % 100 == 0)){
+                	coord << part.pos() << std::endl;
+        	}
+    		part.moveCyl(ENow, BNow, dt);
 
-    	part.moveCyl(ENow, BNow, dt);
-
-    	if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
+    		if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
     		//std::cerr << "particle lost to limiter after" << i \
     		<< "iterations." << std::endl;
-    		break;
+    			break;
+    		}	
+    		if (write){
+	    		// (*geo_).sightline(part);
+	    	}
     	}
-    	if (write){
-	    	// (*geo_).sightline(part);
-	    }
-    	if (write && (i % 100 == 0)){
-    		coord << part.pos() << std::endl;
-    	}
-	}
 	return part.pos();
 }
 
@@ -202,7 +200,7 @@ template <class T>
 void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double tmax, bool write)
 {
 	std::ofstream coord;
-	coord.open("midplaneBurst.out");
+	coord.open("midplaneBurst.out", ios::app);
 	coord << std::setprecision(10);
 
 	Doub mass = MI * (1 - spec) + ME * spec;
@@ -210,19 +208,26 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
 
 	// Doub Bmin = (*geo_).getModB(Vector(0, 0, 0));
 	// decoupling dt from magnetic field
-	Doub Btypical = 1; // magnetic field on the order of unity Tesla.
-	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
-	Doub TLamor = 1/fLamor;
+	Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
+	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28 ( Btypical is in Gauss. The only place this is the case.
+	Doub TLamor = 1.0/fLamor;
 	Doub dt = TLamor / NPERORBIT;
-	int iter = (int) (tmax/dt);
-
+	std::cerr << "dt: " << dt;
+	int iter = floor(tmax/dt);
+	std::cerr <<  " iter: " << iter << std::endl;
 	std::default_random_engine generator(int(time(NULL)));
     
 	for (int ipart = 0; ipart < nparts; ipart++){
 
 		Vector veli = gaussian(0, vbar, generator);
+		std::cerr << "inital velocity: " << veli << std::endl;
 		Vector posi(0, 0, 0);
-    	Particle part(posi, veli, spec);
+		Vector BNow = (*geo_).getB(posi);
+		Vector vPara = veli.parallel(BNow);
+                Vector vPerp = veli.perp(BNow);  
+                Vector vGC = Vector(vPara.mod(), vPerp.mod(), 0);
+		std::cerr << "guiding center velocity: " << vGC << std::endl; 
+   	Particle part(posi, veli, spec);
 
     	pushSingle(part, dt, iter, write, coord);
 	}
@@ -240,7 +245,7 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
 	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 	
 	// decoupling dt from magnetic field
-	Doub Btypical = 1; // magnetic field on the order of unity Tesla.
+	Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
 	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
 	Doub TLamor = 1/fLamor;
 	Doub dt = TLamor / NPERORBIT;
@@ -282,7 +287,7 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
 	    			ENow = (*geo_).getE(posNow);
 
 			    	part.move(ENow, BNow, dt);
-			    	if (isLimiter(posNow)){
+			    	if ((*geo_).isLimiter(posNow)){
 			    		part.lost();
 					    finlVel_private.push_back(vGC); // a list of initial velocities that are lost
 			    		// collect the final paralell velocity here
@@ -301,7 +306,38 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
 	std::cerr << "initial velocities: " << initVel.size() << std::endl;	
 	std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
 	//TODO: implement outputting
+	int species = spec;
+//	std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
+//	+ "_Te_" + std::to_string(Te).substr(0, 3) \
+//	+ "_dr_" + std::to_string(dr).substr(0, 4) \
+//	+ "_mult_" + std::to_string(mult).substr(0, 3) \
+//	+ "_spec_" + std::to_string(species).substr(0, 1) \
+//	+ ".out";
 
+	std::string suffix = "test.out";
+	if (write){
+		ofstream initial;
+		initial.open("output/initial" + suffix);
+		ofstream final;
+		final.open("output/final" + suffix);
+	//	initial << Ti << Te << std::endl;
+
+		while (!initVel.empty()){
+			initial << initVel.front() << std::endl;
+//			initial3 << initVel3.front() << std::endl;
+
+			initVel.pop_front();
+//			initVel3.pop_front();
+		}	
+
+		while (!finlVel.empty()){
+			final << finlVel.front() << std::endl;
+//			final3 << finlVel3.front() << std::endl;
+
+			finlVel.pop_front();
+//			finlVel3.pop_front();
+		}
+	} 
 	Doub gammaOut = 0;
 	while(!paraVel.empty()){
 		gammaOut += paraVel.front();
@@ -318,7 +354,7 @@ Vector Pusher<T>::gaussian(double center, double vbar, std::default_random_engin
 	double vy =  distribution(generator);
 	double vz = distribution(generator);
 
-	Vector vel(vx, vym vz);
+	Vector vel(vx, vy, vz);
 	return vel;
 }
 

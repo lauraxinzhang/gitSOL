@@ -266,9 +266,9 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        double Ti, Te, Buniform, R, L, nx, temperature;
+        double Ti, Te, Buniform, R, L, nx, temperature, tmax;
         bool spec;
-        int nparts, tmax;
+        int nparts;
         bool write;
 
         if (args.size() == 10){
@@ -338,11 +338,21 @@ int main(int argc, const char** argv)
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
         pusher.midplaneBurst(temperature, spec, nparts, tmax, write);
-        std::string option("density");
-        mirror.printData(option, std::cerr);
+        
+	std::string option("density");
+	std::ofstream density("density.out");
+	mirror.printData(option, density);
+	
+	std::string option2("phi");
+	std::ofstream potential("potential.out");
+	mirror.printData(option2, potential);
 
-        double currentOut = pusher.losscone(temperature, spec, nparts, tmax, write);
-        std::cerr << "output current: " << currentOut << std::endl;
+	std::string option3("modB");	
+	std::ofstream modB("modB.out");
+	mirror.printData(option3, modB);
+	
+        //double currentOut = pusher.losscone(temperature, spec, nparts, tmax, write);
+        //std::cerr << "output current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

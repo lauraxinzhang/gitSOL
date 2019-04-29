@@ -21,8 +21,8 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx
 
 	// define computation box according to physical paramters
 	xlim_ = 3 * L;
-	ylim_ = L;
-	zlim_ = L;
+	ylim_ = 10 * L;
+	zlim_ = 10 * L;
 
 	// fill in x grid
 	double dx = gridSize();
@@ -39,7 +39,7 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double L, int nx
 	assert(density_ != nullptr);
 
 	//fill in potential grid
-	setPotential(R_);
+	setPotential();
 	// ensure that the potential grid is a valid vector
 	assert(potential_!= nullptr);
 
@@ -52,6 +52,8 @@ Mirror::~Mirror()
 	delete xGrid_;
 	delete xShift_;
 	delete potential_;
+	delete EField_;
+	delete density_;
 	return;
 }
 
@@ -188,6 +190,7 @@ void Mirror::addToBin(Vector& pos)
 	double xnow = pos.x();
 	double dx = gridSize(); // extends to a xlim on each side.
 	int index = (int) ( (xnow + xlim_)/dx );
+	//std::cerr << "index: " << index << std::endl;
 	(*density_)[index]++;
 	return;
 }
