@@ -74,7 +74,8 @@ class Particle
          */
         double mass() const;
 
-    	void setPos(const Vector& right);
+    	double charge() const;
+	void setPos(const Vector& right);
     	void setVel(const Vector& right);
     	void setSpec(const bool right);
 

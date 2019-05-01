@@ -60,6 +60,11 @@ double Particle::mass() const
 	return mass_;
 }
 
+double Particle::charge() const
+{
+	return charge_;
+}
+
 void Particle::setPos(const Vector& right)
 {
 	pos_.setX(right.x());

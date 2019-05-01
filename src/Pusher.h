@@ -147,7 +147,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
             }
             part.move(ENow, BNow, dt);
         //int lastCrossed = 26;// start at the last sightline (first to cross)
-
+		std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
             if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
             // std::cerr << "particle lost to limiter after" << i \
             // << "iterations." << std::endl;
@@ -219,7 +219,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
     
     for (int ipart = 0; ipart < nparts; ipart++){
 
-        Vector veli = gaussian(0, vbar, generator);
+//        Vector veli = gaussian(0, vbar, generator);
+	Vector veli = Vector(1000, 0, 0);
         std::cerr << "inital velocity: " << veli << std::endl;
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
@@ -228,8 +229,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, double t
                 Vector vGC = Vector(vPara.mod(), vPerp.mod(), 0);
         std::cerr << "guiding center velocity: " << vGC << std::endl; 
        Particle part(posi, veli, spec);
-
-        pushSingle(part, dt, iter, write, coord);
+	std::cerr << "mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
+        pushSingle(part, dt, 100, write, coord);
     }
     return;
 }
@@ -252,16 +253,17 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
     int maxiter = (int) (tmax / dt);
 
     std::default_random_engine generator(int(time(NULL)));
-    
+    omp_set_num_threads(1);
     #pragma omp parallel
     {
+	
         generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
 
         Vector veli, posNow, BNow, ENow, vPara, vPerp, vGC;
         Vector posi(0, 0, 0);
-        Particle part;
-        part.setSpec(spec);
-
+        Particle part(posi, veli, spec);
+//        part.setSpec(spec);
+	std::cerr << "mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
         std::list<Vector> initVel_private; // A list of (vpara, vperp)
         std::list<Vector> finlVel_private;
         std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
@@ -269,10 +271,11 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
         #pragma omp for private(part, veli, \
         posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
             for (int i=0; i < nparts; ++i ){
-                veli = gaussian(0, vbar, generator);
-                part.setPos(posi);
+                //veli = gaussian(0, vbar, generator);
+                veli = Vector(1000, 0, 0);
+		part.setPos(posi);
                 part.setVel(veli);
-
+		part.setSpec(spec);
                 BNow = (*geo_).getB(posi);
 
                 vPara = veli.parallel(BNow);
@@ -280,14 +283,14 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
                 vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
 
                 initVel_private.push_back(vGC);
-
-                for (int step = 0; step < maxiter; ++step){ 
+		std::cerr << "inside mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
+                for (int step = 0; step < 100; ++step){ 
                     posNow = part.pos();
                     BNow = (*geo_).getB(posNow);
                     ENow = (*geo_).getE(posNow);
 
                     part.move(ENow, BNow, dt);
-		    std::cerr << "Enow: "<< ENow << " posNow: " << posNow << std::endl;
+		    std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
                     if ((*geo_).isLimiter(posNow)){
                         std::cerr << "particle lost to limiter after" << step \
                         << "iterations." << std::endl;
