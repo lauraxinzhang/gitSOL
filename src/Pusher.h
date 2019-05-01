@@ -287,6 +287,7 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
                     ENow = (*geo_).getE(posNow);
 
                     part.move(ENow, BNow, dt);
+		    std::cerr << "Enow: "<< ENow << " posNow: " << posNow << std::endl;
                     if ((*geo_).isLimiter(posNow)){
                         std::cerr << "particle lost to limiter after" << step \
                         << "iterations." << std::endl;
