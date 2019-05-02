@@ -117,9 +117,6 @@ double Mirror::findPhiMid(double Rratio)
 
 double Mirror::getPhi( const Vector& pos)
 {
-    if (potential_ == nullptr){
-        setPotential(R_);
-    }
     INTERP1D potential((*xGrid_), (*potential_));
     return potential.interp(pos.x());
 }
@@ -127,16 +124,13 @@ double Mirror::getPhi( const Vector& pos)
 void Mirror::setEField()
 {
     VecDoub * EField = new VecDoub(xShift_-> size());
-    if (potential_ == nullptr){
-        setPotential(R_);
-    } else {
         for (int i = 0; i < xShift_-> size(); i++){
             double dphi = (*potential_)[i + 1] - (*potential_)[i];
             double dx   = gridSize();
             double E    = -1 * dphi / dx;
             (*EField)[i] = E;
         }
-    }
+    
     EField_ = EField;
     return;
 }

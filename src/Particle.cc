@@ -60,6 +60,11 @@ double Particle::mass() const
 	return mass_;
 }
 
+double Particle::charge() const
+{
+	return charge_;
+}
+
 void Particle::setPos(const Vector& right)
 {
 	pos_.setX(right.x());
@@ -79,6 +84,14 @@ void Particle::setVel(const Vector& right)
 void Particle::setSpec(const bool right)
 {
 	species_ = right;
+	// CHANGE THE MASS AND CHARGE TOO!!!!!!
+	if (species_){
+		charge_ = -1 * QE;
+		mass_ = ME;
+	} else {
+		charge_ = 1 * QE;
+		mass_ = MI;
+	}
 	return;
 }
 
