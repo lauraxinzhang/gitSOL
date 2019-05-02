@@ -322,22 +322,13 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, double tmax, bo
         initial.open("output/initial" + suffix);
         ofstream final;
         final.open("output/final" + suffix);
-    //    initial << Ti << Te << std::endl;
-
         while (!initVel.empty()){
             initial << initVel.front() << std::endl;
-//            initial3 << initVel3.front() << std::endl;
-
             initVel.pop_front();
-//            initVel3.pop_front();
         }    
-
         while (!finlVel.empty()){
             final << finlVel.front() << std::endl;
-//            final3 << finlVel3.front() << std::endl;
-
             finlVel.pop_front();
-//            finlVel3.pop_front();
         }
     } 
     Doub gammaOut = 0;
