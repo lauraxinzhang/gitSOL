@@ -68,6 +68,10 @@ class Pusher{
          */
         Vector gaussian(double center, double vbar, std::default_random_engine& generator);
 
+        /**
+         * \brief Generates velocity vector from flux source distribution v*Gaussian
+         */
+        Vector flux(double center, double vbar, std::default_random_engine& generator);
 //---------------------------------------  NBI   ---------------------------------------------
 
 
@@ -356,6 +360,19 @@ template <class T>
 Vector Pusher<T>::gaussian(double center, double vbar, std::default_random_engine& generator)
 {
     std::normal_distribution<double> distribution(center, vbar); // generate a Gaussian distributed velocity
+    double vx = distribution(generator); // generate 3 normal distributed velocities.
+    double vy =  distribution(generator);
+    double vz = distribution(generator);
+
+    Vector vel(vx, vy, vz);
+    return vel;
+}
+
+template <class T>
+Vector Pusher<T>::flux(double center, double vbar, std::default_random_engine& generator)
+{
+    std::uniform_distribution<double> distribution(0, 1);
+    // TODO: transform the uniformly distributed numbers into flux function
     double vx = distribution(generator); // generate 3 normal distributed velocities.
     double vy =  distribution(generator);
     double vz = distribution(generator);
