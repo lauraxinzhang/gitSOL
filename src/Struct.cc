@@ -168,3 +168,20 @@ Doub eFieldHelp::operator() (Doub l)
 	return helper_.interp(l);
 }
 
+histogram::histogram(Doub min, Doub max, Doub numBin)
+		  : min_(min), max_(max), bins_(nullptr)
+{
+	Doub gridsize = (max_ - min_) / numBin;
+	gridsize_ = gridsize;
+	VecDoub bins = new VecDoub(numBin);
+	bins_ = bins;
+	return;
+}
+
+void histogram::addToBin(Doub val)
+{
+	int index = (int) ( (val - min_ ) / gridsize_);
+	(*bin_)[index]++;
+	return;
+}
+

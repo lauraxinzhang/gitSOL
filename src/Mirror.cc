@@ -14,7 +14,7 @@
 Mirror::Mirror(double Ti, double Te, double Buniform, double R, double mult, double L, int nx)
         : Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
           nx_(nx), 
-          xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr), density_(nullptr)
+          xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr), density_(nullptr), velocities_(nullptr)
 {
     // make sure nx is odd
     assert(nx % 2 == 1);
@@ -89,7 +89,7 @@ void Mirror::setPotential()
 
 void Mirror::setPotential(double Rratio, double mult)
 {
-    double phiMid = findPhiMid(Rratio) * mult;
+    double phiMid = findPhiMid(Rratio) * Te_ * mult;
     //std::cerr << "Found phiMid: " << phiMid << std::endl;
     VecDoub * newgrid = new VecDoub(nx_);
 
