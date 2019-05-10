@@ -221,10 +221,14 @@ void Mirror::printData(std::string& option, std::ostream &os)
         }
     }
     else if (option == std::string("efield")){
-        for (int i = 0; i < xShift_ -> size(); i++){
-            double xnow = (*xShift_)[i];
-            double output = (*EField_)[i];
-            os << xnow << "," << output << std::endl;
+	if (EField_ == nullptr){
+            os << "Electric field was never calculated" << std::endl;
+        } else {
+            for (int i = 0; i < xShift_ -> size(); i++){
+                double xnow = (*xShift_)[i];
+                double output = (*EField_)[i];
+                os << xnow << "," << output << std::endl;
+            }
         }
     }
 }
