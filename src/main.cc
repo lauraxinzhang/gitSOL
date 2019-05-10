@@ -266,9 +266,9 @@ int main(int argc, const char** argv)
 
     }
     else if (controller == std::string("-straight")){
-        double Ti, Te, Buniform, R, mult, L, nx, temperature, tmax;
+        double Ti, Te, Buniform, R, mult, L, nx, temperature;//, tmax;
         bool spec;
-        int nparts;
+        int nparts, maxiter;
         bool write;
 
         if (args.size() == 11){
@@ -301,7 +301,7 @@ int main(int argc, const char** argv)
             nparts = stod(args.front());
             args.pop_front();
 
-            tmax = stod(args.front());
+            maxiter = stod(args.front());
             args.pop_front();
 
             write = stoi(args.front());
@@ -332,8 +332,10 @@ int main(int argc, const char** argv)
             std::cin >> spec;
             std::cerr << "Number of particles sourced from Maxwellian: " << std::endl;
             std::cin >> nparts;
-            std::cerr << "Total time of simulation (in seconds): " << std::endl;
-            std::cin >> tmax;
+//            std::cerr << "Total time of simulation (in seconds): " << std::endl;
+//            std::cin >> tmax;
+	    std::cerr << "Max number of iteration per particle: " << std::endl;
+	    std::cin >> maxiter;
             std::cerr << "Write particle coordinates to file? 1 for yes, 0 for no." << std::endl;
             std::cin >> write;
             std::cerr << "All set." << std::endl;
@@ -342,7 +344,7 @@ int main(int argc, const char** argv)
         Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        pusher.midplaneBurst(temperature, spec, nparts, tmax, write);
+        pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
         
         std::string option("density");
         std::ofstream density("density.out");
@@ -360,7 +362,7 @@ int main(int argc, const char** argv)
         std::ofstream efield("efield.out");
         mirror.printData(option4, efield);
     
-        double currentOut = pusher.losscone(temperature, spec, nparts, tmax, write);
+        double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write);
         std::cerr << "output current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
