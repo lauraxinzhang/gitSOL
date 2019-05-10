@@ -321,7 +321,7 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
 //    + ".out";
 
     std::string suffix = "test.out";
-    if (write){
+    if (true){
         ofstream initial;
         initial.open("output/initial" + suffix);
         ofstream final;
