@@ -144,8 +144,8 @@ class Mirror
 
         VecDoub * density_; // defined on xShift_
 
-        template <class T>
-        friend double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
+        //template <class T>
+        //friend double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
 
 };
 

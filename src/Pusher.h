@@ -61,7 +61,7 @@ class Pusher{
         /**
          * \brief A parallel particle pusher, collects lost and trapped particles
          */
-        double losscone(double energy, bool spec, int nparts, int maxiter, bool write,, std::string& suffix);
+        double losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
 
         /**
          * \brief Generates velocity vector from a Gaussian distribution.
