@@ -344,7 +344,7 @@ int main(int argc, const char** argv)
         Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        // pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
+        pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
         
         int species(spec);
         std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
