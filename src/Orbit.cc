@@ -694,13 +694,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 	setPastukhov(Ti, Te, mult);
 	setEField();
 
-	// std::cerr<< "mass" << mass << "dt" << dt << std::endl; 
-
-	// A default electric field of 0;
-    // Vector EField(0, 0, 0);
-
 	std::default_random_engine generator(int(time(NULL)));
-
     std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
 
 	#pragma omp parallel
