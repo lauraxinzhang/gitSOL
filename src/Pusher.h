@@ -68,6 +68,11 @@ class Pusher{
          */
         Vector gaussian(double center, double vbar, std::default_random_engine& generator);
 
+        /**
+         * \brief Generates velocity vector from a flux distribution.
+         */
+        Vector flux(double center, double vbar, std::default_random_engine& generator);
+
 //---------------------------------------  NBI   ---------------------------------------------
 
 
@@ -217,7 +222,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     
     for (int ipart = 0; ipart < nparts; ipart++){
 
-        Vector veli = gaussian(0, vbar, generator);
+        // Vector veli = gaussian(0, vbar, generator);
+        Vector veli = flux(0, vbar, generator);
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
         Vector vPara = veli.parallel(BNow);
@@ -332,6 +338,24 @@ Vector Pusher<T>::gaussian(double center, double vbar, std::default_random_engin
     double vx = distribution(generator); // generate 3 normal distributed velocities.
     double vy =  distribution(generator);
     double vz = distribution(generator);
+
+    Vector vel(vx, vy, vz);
+    return vel;
+}
+
+template <class T>
+Vector Pusher<T>::flux(double center, double vbar, std::default_random_engine& generator)
+{
+    std::normal_distribution<double> gauss(center, vbar); // generate a Gaussian distributed velocity
+    double vy =  gauss(generator);
+    double vz = gauss(generator);
+
+    std::bernoulli_distribution coinflip(0.5);
+    int sign = if(coinflip(generator)); // choose which direction x is going
+
+    std::uniform_distribution<double> uniform(0, 1); 
+    double y = uniform(generator);
+    double vx = sign * sqrt(- 2 * pow(vbar, -2) * log( 1 - y)); // from CDF transform.
 
     Vector vel(vx, vy, vz);
     return vel;
