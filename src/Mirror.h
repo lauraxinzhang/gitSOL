@@ -144,6 +144,7 @@ class Mirror
 
         VecDoub * density_; // defined on xShift_
 
+        histogram * velocities_; // histogram of vx at midplane
         //template <class T>
         //friend double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
 
