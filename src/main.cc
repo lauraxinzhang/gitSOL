@@ -350,6 +350,8 @@ int main(int argc, const char** argv)
         std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
                         + "_Te_" + std::to_string(Te).substr(0, 3) \
                         + "_mult_" + std::to_string(mult).substr(0, 3) \
+                        + "_R_" + std::to_string(R).substr(0, 1)\
+                        + "_iter_" + std::to_string(maxiter)\
                         + "_spec_" + std::to_string(species).substr(0, 1) \
                         + ".out";
 

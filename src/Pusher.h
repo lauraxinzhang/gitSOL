@@ -212,7 +212,7 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     Doub vbar = sqrt(temperature  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 
     // decoupling dt from magnetic field
-    Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
+    Doub Btypical = BMAGAXIS; // magnetic field on the order of unity Tesla.
     Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28 ( Btypical is in Gauss. The only place this is the case.
     Doub TLamor = 1.0/fLamor;
     Doub dt = TLamor / NPERORBIT;
@@ -246,7 +246,7 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
     Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
     
     // decoupling dt from magnetic field
-    Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
+    Doub Btypical = BMAGAXIS; // magnetic field on the order of BMAGAXIS.
     Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
     Doub TLamor = 1/fLamor;
     Doub dt = TLamor / NPERORBIT;
