@@ -173,7 +173,7 @@ histogram::histogram(Doub min, Doub max, Doub numBin)
 {
 	Doub gridsize = (max_ - min_) / numBin;
 	gridsize_ = gridsize;
-	VecDoub bins = new VecDoub(numBin);
+	VecDoub * bins = new VecDoub(numBin);
 	bins_ = bins;
 	return;
 }
@@ -181,7 +181,7 @@ histogram::histogram(Doub min, Doub max, Doub numBin)
 void histogram::addToBin(Doub val)
 {
 	int index = (int) ( (val - min_ ) / gridsize_);
-	(*bin_)[index]++;
+	(*bins_)[index]++;
 	return;
 }
 

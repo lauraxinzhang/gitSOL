@@ -136,10 +136,10 @@ struct histogram
 	
 	histogram(Doub min, Doub max, Doub numBin);
 
-	void histogram::addToBin(Doub val);
+	void addToBin(Doub val);
 
-	friend void Mirror::printData(std::string& option, std::ostream &os);
-}
+	friend class Mirror;
+};
 
 #endif
 

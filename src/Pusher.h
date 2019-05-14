@@ -267,8 +267,9 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
         #pragma omp for private(part, veli, \
             posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
             for (int i=0; i < nparts; ++i ){
-                veli = gaussian(0, vbar, generator);
+    //            veli = gaussian(0, vbar, generator);
           //      veli = Vector(1000, 0, 0);
+                veli = flux(0, vbar, generator);
                 part.setPos(posi);
                 part.setVel(veli);
                 part.setSpec(spec);
@@ -351,12 +352,16 @@ Vector Pusher<T>::flux(double center, double vbar, std::default_random_engine& g
     double vz = gauss(generator);
 
     std::bernoulli_distribution coinflip(0.5);
-    int sign = if(coinflip(generator)); // choose which direction x is going
-
-    std::uniform_distribution<double> uniform(0, 1); 
+    bool coin = coinflip(generator); // choose which direction x is going
+    int sign;
+    if (coin){
+        sign = 1;
+    } else { sign = - 1; }
+    
+    std::uniform_real_distribution<double> uniform(0, 1); 
     double y = uniform(generator);
-    double vx = sign * sqrt(- 2 * pow(vbar, -2) * log( 1 - y)); // from CDF transform.
-
+    double vx = sign * sqrt(- 2 * pow(vbar, 2) * log( 1 - y)); // from CDF transform.
+	//std::cout << vx << std::endl;
     Vector vel(vx, vy, vz);
     return vel;
 }
