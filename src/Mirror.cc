@@ -98,7 +98,7 @@ void Mirror::setPotential(double Rratio, double mult)
 
     for (int i = 0; i < nx_; i++){
         double x = (*xGrid_)[i] / xlim_;
-        double phi = phiMid * cos(0.5 * PI * x);
+        double phi = phiMid * pow( cos(0.5 * PI * x), 6);
         (*newgrid)[i] = phi;
         //std::cerr << "x: " << x << " phi: " << phi << std::endl;
     }

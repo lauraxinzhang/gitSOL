@@ -278,7 +278,7 @@ int main(int argc, const char** argv)
             Te = stod(args.front());
             args.pop_front();
 
-            Buniform = stoi(args.front());
+            Buniform = stod(args.front());
             args.pop_front();
 
             R = stod(args.front());
@@ -301,7 +301,7 @@ int main(int argc, const char** argv)
             nparts = stod(args.front());
             args.pop_front();
 
-            maxiter = stod(args.front());
+            maxiter = stoi(args.front());
             args.pop_front();
 
             write = stoi(args.front());
@@ -371,8 +371,8 @@ int main(int argc, const char** argv)
         std::ofstream efield("efield.out");
         mirror.printData(option4, efield);
     
-        double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
-        std::cerr << "output current: " << currentOut << std::endl;
+        //double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
+        //std::cerr << "output current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

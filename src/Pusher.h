@@ -145,11 +145,14 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     for (int i = 0; i < iter; i++){
     //std::cerr << "pushing iteration: " << i << std::endl;    
         Vector posNow = part.pos();
-            Vector BNow = (*geo_).getB(posNow);
-            Vector ENow = (*geo_).getE(posNow);
-        if (write && (i % 500 == 0)){
-                    coord << part.pos() << std::endl;
-            }
+        Vector BNow = (*geo_).getB(posNow);
+        Vector ENow = (*geo_).getE(posNow);
+        if (write && (i % 2 == 0)){
+            coord << part.pos() << std::endl;
+            double Ex = pow(part.vel().x(), 2) * 0.5 * part.mass()/QE;
+	    double Eperp = part.energy() - Ex;    
+	std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
+        }
             part.move(ENow, BNow, dt);
         //int lastCrossed = 26;// start at the last sightline (first to cross)
 //		std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
@@ -223,7 +226,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     for (int ipart = 0; ipart < nparts; ipart++){
 
         // Vector veli = gaussian(0, vbar, generator);
-        Vector veli = flux(0, vbar, generator);
+//        Vector veli = flux(0, vbar, generator);
+        Vector veli(69205.0, 169518.0, 0);
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
         Vector vPara = veli.parallel(BNow);
@@ -312,9 +316,9 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
     // std::string suffix = "test.out";
     if (true){
         ofstream initial;
-        initial.open("output_straight/initial" + suffix);
+        initial.open("output_new/initial" + suffix);
         ofstream final;
-        final.open("output_straight/final" + suffix);
+        final.open("output_new/final" + suffix);
         while (!initVel.empty()){
             initial << initVel.front() << std::endl;
             initVel.pop_front();

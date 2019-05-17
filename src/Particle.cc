@@ -65,6 +65,12 @@ double Particle::charge() const
 	return charge_;
 }
 
+double Particle::energy() const
+{
+	double result = 0.5 * mass() * pow(vel().mod() , 2)/QE;
+	return result;
+}
+
 void Particle::setPos(const Vector& right)
 {
 	pos_.setX(right.x());
