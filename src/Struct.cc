@@ -82,7 +82,7 @@ Doub PassingHelp::operator() (Doub phiTilde)
 	Doub Ie = function.interp(xe, R_);
 	Doub Ii = function.interp(xi, R_);
 
-	Doub diff = Ie - (ME / MI) * (Ti_ / Te_) * Ii;
+	Doub diff = Ie - pow((ME / MI) * (Ti_ / Te_), 0.5) * Ii;
 
 	//std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
 	return diff;

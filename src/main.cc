@@ -344,7 +344,7 @@ int main(int argc, const char** argv)
         Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
+        //pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
         
         int species(spec);
         std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
@@ -370,9 +370,14 @@ int main(int argc, const char** argv)
         std::string option4("efield");    
         std::ofstream efield("efield.out");
         mirror.printData(option4, efield);
-    
-        //double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
-        //std::cerr << "output current: " << currentOut << std::endl;
+
+	std::string option5("roots");
+	std::ofstream roots("roots.out");
+	mirror.printData(option5, roots);
+    	
+	std::cout << "mult: " << mult << " spec: " << spec;
+        double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
+        std::cout << " current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

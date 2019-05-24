@@ -227,7 +227,7 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
 
         // Vector veli = gaussian(0, vbar, generator);
 //        Vector veli = flux(0, vbar, generator);
-        Vector veli(69205.0, 169518.0, 0);
+        Vector veli(121774.0, 106491.0,0);
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
         Vector vPara = veli.parallel(BNow);
@@ -271,9 +271,9 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
         #pragma omp for private(part, veli, \
             posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
             for (int i=0; i < nparts; ++i ){
-    //            veli = gaussian(0, vbar, generator);
+                veli = gaussian(0, vbar, generator);
           //      veli = Vector(1000, 0, 0);
-                veli = flux(0, vbar, generator);
+          //      veli = flux(0, vbar, generator);
                 part.setPos(posi);
                 part.setVel(veli);
                 part.setSpec(spec);
@@ -329,10 +329,14 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
         }
     } 
     Doub gammaOut = 0;
+    Doub gammaSquared = 0;
+    int n = paraVel.size();
     while(!paraVel.empty()){
         gammaOut += paraVel.front();
+        gammaSquared += pow( paraVel.front(), 2 );
         paraVel.pop_front();
-    }    
+    }
+    //std::cout << " spec: " << spec << " total: " << gammaOut << " mean: " << gammaOut/n << " SW mean: " << gammaSquared / gammaOut << std::endl;    
     return gammaOut;
 }
 

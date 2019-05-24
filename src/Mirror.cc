@@ -100,7 +100,7 @@ void Mirror::setPotential(double Rratio, double mult)
         double x = (*xGrid_)[i] / xlim_;
         double phi = phiMid * pow( cos(0.5 * PI * x), 6);
         (*newgrid)[i] = phi;
-        //std::cerr << "x: " << x << " phi: " << phi << std::endl;
+        //std::cerr << "x," << x << " phi," << phi << std::endl;
     }
     potential_ = newgrid;
     return;
@@ -230,7 +230,19 @@ void Mirror::printData(std::string& option, std::ostream &os)
                 os << xnow << "," << output << std::endl;
             }
         }
-    }
+    } else if (option == std::string("roots")){
+        for (double R = 1; R < 5; R += 0.2){
+            //std::cerr << "R: " << R << std::endl;
+            for (double tau = 0.2; tau < 1; tau += 0.1){
+	 	PassingHelp help(tau, 1, R);
+    		Doub upper = 24.9 * tau;
+    		Doub result = rtbis(help, 0, upper, 1E-9);
+              //  std::cerr << "tau: " << tau << "result: " << result << std::endl;		
+                os << R << "," << tau << "," << result << std::endl;
+            }
+        }
+    }	
+
 }
 
 
