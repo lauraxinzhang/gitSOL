@@ -129,12 +129,12 @@ struct eFieldHelp
 	Doub operator() (Doub l);
 };
 
-struct histogram
+struct Histogram
 {
 	Doub min_, max_, gridsize_;
 	VecDoub * bins_;
 	
-	histogram(Doub min, Doub max, Doub numBin);
+	histogram(Doub min, Doub max, int numBin);
 
 	void addToBin(Doub val);
 

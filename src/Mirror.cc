@@ -42,7 +42,6 @@ Mirror::Mirror(double Ti, double Te, double Buniform, double R, double mult, dou
     setPotential(R_, mult);
     // ensure that the potential grid is a valid vector
     assert(potential_!= nullptr);
-
     return;
 }
 
@@ -179,16 +178,36 @@ bool Mirror::isLimiter(const Vector& pos)
     return result;
 }
 
-void Mirror::addToBin(Vector& pos)
+void Mirror::addToBin(Particle& part)
 {
+	// First add to density histogram:
+	// (TODO: change the density_ to Histogram struct too.)
+	Vector pos = part.pos();
     double xnow = pos.x();
     double dx = gridSize(); // extends to a xlim on each side.
     int index = (int) ( (xnow + xlim_)/dx );
     //std::cerr << "index: " << index << std::endl;
     (*density_)[index]++;
+
+    // Then add to velocity histogram:
+    if (velocities_ == nullptr){
+    	std::cerr << "velocity bin was never initialized" << std::endl;
+    	throw ExitException(1);
+    } else {
+    	double vx = part.vel().x();
+    	velocities_ -> addToBin(vx);
+    }
     return;
 }
 
+void Mirror::initVelHist(double vbar, int numBin)
+{
+    if(velocities_ == nullptr){
+        Histogram newhist = new Histogram(-4 * vbar, 4 * vabr, numBin);
+        velocities_ = newhist;
+    }
+	return;
+}
 
 void Mirror::printData(std::string& option, std::ostream &os)
 {
@@ -221,7 +240,7 @@ void Mirror::printData(std::string& option, std::ostream &os)
         }
     }
     else if (option == std::string("efield")){
-	if (EField_ == nullptr){
+		if (EField_ == nullptr){
             os << "Electric field was never calculated" << std::endl;
         } else {
             for (int i = 0; i < xShift_ -> size(); i++){
@@ -230,16 +249,25 @@ void Mirror::printData(std::string& option, std::ostream &os)
                 os << xnow << "," << output << std::endl;
             }
         }
-    } else if (option == std::string("roots")){
+    } 
+    else if (option == std::string("roots")){
         for (double R = 1; R < 5; R += 0.2){
             //std::cerr << "R: " << R << std::endl;
             for (double tau = 0.2; tau < 1; tau += 0.1){
-	 	PassingHelp help(tau, 1, R);
-    		Doub upper = 24.9 * tau;
-    		Doub result = rtbis(help, 0, upper, 1E-9);
+                PassingHelp help(tau, 1, R);
+                Doub upper = 24.9 * tau;
+                Doub result = rtbis(help, 0, upper, 1E-9);
               //  std::cerr << "tau: " << tau << "result: " << result << std::endl;		
                 os << R << "," << tau << "," << result << std::endl;
             }
+        }
+    }
+    else if (option == std::string("velocity")){
+        VecDoub * target = velocities_ -> bins;
+        os << velocities_->min_ << "," << velocities_-> max_  << "," << target-> size() << std::endl;
+        for (int i = 0; i < target -> size(); i++){
+            double output = (target)[i];
+            os << output << std::endl;
         }
     }	
 

@@ -168,7 +168,7 @@ Doub eFieldHelp::operator() (Doub l)
 	return helper_.interp(l);
 }
 
-histogram::histogram(Doub min, Doub max, Doub numBin)
+Histogram::Histogram(Doub min, Doub max, int numBin)
 		  : min_(min), max_(max), bins_(nullptr)
 {
 	Doub gridsize = (max_ - min_) / numBin;
@@ -178,10 +178,12 @@ histogram::histogram(Doub min, Doub max, Doub numBin)
 	return;
 }
 
-void histogram::addToBin(Doub val)
+void Histogram::addToBin(Doub val)
 {
-	int index = (int) ( (val - min_ ) / gridsize_);
-	(*bins_)[index]++;
+	if (val < max_ && val > min_){
+		int index = (int) ( (val - min_ ) / gridsize_);
+		(*bins_)[index]++;
+	}
 	return;
 }
 

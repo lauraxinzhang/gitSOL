@@ -150,20 +150,20 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
         if (write && (i % 2 == 0)){
             coord << part.pos() << std::endl;
             double Ex = pow(part.vel().x(), 2) * 0.5 * part.mass()/QE;
-	    double Eperp = part.energy() - Ex;    
-	std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
+			double Eperp = part.energy() - Ex;    
+			std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
         }
             part.move(ENow, BNow, dt);
-        //int lastCrossed = 26;// start at the last sightline (first to cross)
-//		std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
-            if ((*geo_).isLimiter(part.pos())){ // TODO write this method in Mirror
+    	    //int lastCrossed = 26;// start at the last sightline (first to cross)
+//			std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
+            if ((*geo_).isLimiter(part.pos())){
             // std::cerr << "particle lost to limiter after" << i \
             // << "iterations." << std::endl;
                 break;
             } else {
             // Next line for Mirror only
-                    Vector position = part.pos();
-                    (*geo_).addToBin(position);
+                Vector position = part.pos();
+                (*geo_).addToBin(position);
             }
             if (write){ // always collect for density calculations
             // Next line for NBI only
@@ -214,6 +214,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     Doub mass = MI * (1 - spec) + ME * spec;
     Doub vbar = sqrt(temperature  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 
+    (*geo_).initVelHist(vbar, 201);
+
     // decoupling dt from magnetic field
     Doub Btypical = BMAGAXIS; // magnetic field on the order of unity Tesla.
     Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28 ( Btypical is in Gauss. The only place this is the case.
@@ -226,8 +228,8 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     for (int ipart = 0; ipart < nparts; ipart++){
 
         // Vector veli = gaussian(0, vbar, generator);
-//        Vector veli = flux(0, vbar, generator);
-        Vector veli(121774.0, 106491.0,0);
+        Vector veli = flux(0, vbar, generator);
+        // Vector veli(121774.0, 106491.0,0);
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
         Vector vPara = veli.parallel(BNow);

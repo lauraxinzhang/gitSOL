@@ -334,8 +334,8 @@ int main(int argc, const char** argv)
             std::cin >> nparts;
 //            std::cerr << "Total time of simulation (in seconds): " << std::endl;
 //            std::cin >> tmax;
-	    std::cerr << "Max number of iteration per particle: " << std::endl;
-	    std::cin >> maxiter;
+            std::cerr << "Max number of iteration per particle: " << std::endl;
+            std::cin >> maxiter;
             std::cerr << "Write particle coordinates to file? 1 for yes, 0 for no." << std::endl;
             std::cin >> write;
             std::cerr << "All set." << std::endl;
@@ -344,16 +344,7 @@ int main(int argc, const char** argv)
         Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        //pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
-        
-        int species(spec);
-        std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
-                        + "_Te_" + std::to_string(Te).substr(0, 3) \
-                        + "_mult_" + std::to_string(mult).substr(0, 3) \
-                        + "_R_" + std::to_string(R).substr(0, 1)\
-                        + "_iter_" + std::to_string(maxiter)\
-                        + "_spec_" + std::to_string(species).substr(0, 1) \
-                        + ".out";
+        pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
 
         std::string option("density");
         std::ofstream density("density.out");
@@ -371,13 +362,27 @@ int main(int argc, const char** argv)
         std::ofstream efield("efield.out");
         mirror.printData(option4, efield);
 
-	std::string option5("roots");
-	std::ofstream roots("roots.out");
-	mirror.printData(option5, roots);
+        // std::string option5("roots");
+        // std::ofstream roots("roots.out");
+        // mirror.printData(option5, roots);
+
+        std::string option6("velocity");
+        std::ofstream velocity("velocity.out");
+        mirror.printData(option6, velocity);
+
+
+        int species(spec);
+        std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
+                        + "_Te_" + std::to_string(Te).substr(0, 3) \
+                        + "_mult_" + std::to_string(mult).substr(0, 3) \
+                        + "_R_" + std::to_string(R).substr(0, 1)\
+                        + "_iter_" + std::to_string(maxiter)\
+                        + "_spec_" + std::to_string(species).substr(0, 1) \
+                        + ".out";
     	
-	std::cout << "mult: " << mult << " spec: " << spec;
-        double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
-        std::cout << " current: " << currentOut << std::endl;
+        // std::cout << "mult: " << mult << " spec: " << spec;
+        // double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
+        // std::cout << " current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

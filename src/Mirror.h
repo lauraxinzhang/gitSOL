@@ -108,8 +108,9 @@ class Mirror
          * \brief  Calculates which grid the particle is in and increment the 
          *         corresponding value in density_
          */
-        void addToBin(Vector& pos);
+        void addToBin(Particle& part);
 
+        void initVelHist(double vbar, int numBin);
         /** 
          * \brief Print Vector data along the x axis
          * \param func  A member function with void return type that returns funx(Vector) as a double
@@ -144,7 +145,7 @@ class Mirror
 
         VecDoub * density_; // defined on xShift_
 
-        histogram * velocities_; // histogram of vx at midplane
+        Histogram * velocities_; // histogram of vx at midplane
         //template <class T>
         //friend double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
 
