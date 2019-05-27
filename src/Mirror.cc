@@ -192,7 +192,8 @@ void Mirror::addToBin(Particle& part)
     // Then add to velocity histogram:
     if (velocities_ == nullptr){
     	std::cerr << "velocity bin was never initialized" << std::endl;
-    	throw ExitException(1);
+//    	throw ExitException(1);
+	assert(velocities_ == nullptr);
     } else {
     	double vx = part.vel().x();
     	velocities_ -> addToBin(vx);
@@ -203,7 +204,7 @@ void Mirror::addToBin(Particle& part)
 void Mirror::initVelHist(double vbar, int numBin)
 {
     if(velocities_ == nullptr){
-        Histogram newhist = new Histogram(-4 * vbar, 4 * vabr, numBin);
+        Histogram * newhist = new Histogram(-4 * vbar, 4 * vbar, numBin);
         velocities_ = newhist;
     }
 	return;
@@ -263,10 +264,10 @@ void Mirror::printData(std::string& option, std::ostream &os)
         }
     }
     else if (option == std::string("velocity")){
-        VecDoub * target = velocities_ -> bins;
+        VecDoub * target = velocities_ -> bins_;
         os << velocities_->min_ << "," << velocities_-> max_  << "," << target-> size() << std::endl;
         for (int i = 0; i < target -> size(); i++){
-            double output = (target)[i];
+            double output = (*target)[i];
             os << output << std::endl;
         }
     }	
