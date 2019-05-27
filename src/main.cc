@@ -390,6 +390,8 @@ int main(int argc, const char** argv)
     else if (controller == std::string("-passing")) {
         std::cerr << "calculating passing particle potential" << std::endl;
         orbit.setPassing(1, 1, 1); // set passing for Ti/Te = 0.2 TODO take command line
+        std::ofstream passingPotential("passingPotential.out");
+        orbit.writePastukhov(1, 1, 1, passingPotential)
     }
     else if (controller == std::string("-h")){
         help();

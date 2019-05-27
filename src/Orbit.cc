@@ -52,7 +52,7 @@
 */
 
 Orbit::Orbit(const std::string& field, const std::string& limiter)
-	: Phi_(nullptr), Rratio_(nullptr), Er_(nullptr), Ez_(nullptr),\
+	: Phi_(nullptr), Rratio_(nullptr), thetaRZ_(nullptr), Er_(nullptr), Ez_(nullptr),\
 	  rShift_(nullptr), zShift_(nullptr)
 {
 	// Read and configure field here, 
@@ -301,8 +301,11 @@ void Orbit::configMirror()
 {
 	assert(Rratio_ == nullptr);
 	MatDoub * Rratio = new MatDoub(nw_, nh_);
-	mirrorRatio( *Rratio );
+	MatDoub * thetaRZ = new MatDoub(nw_, nh_);
+
+	mirrorRatio( *Rratio , *thetaRZ);
 	Rratio_ = Rratio;
+	thetaRZ_ = thetaRZ;
 
 	/* this following line doesn't work because Rratio is still a nullptr
 	mirrorRatio(*Rratio_);
@@ -310,7 +313,7 @@ void Orbit::configMirror()
 	return;
 }
 
-void Orbit::mirrorRatio(MatDoub& ratio)
+void Orbit::mirrorRatio(MatDoub& ratio, MatDoub& thetaRZ)
 {
 	psiLimiter limit( (*rGrid_), (*zGrid_), (*psiRZ_), (*rLimit_), (*zLimit_) );
 	for (int iz = 0; iz < nh_; ++iz){
@@ -326,8 +329,11 @@ void Orbit::mirrorRatio(MatDoub& ratio)
     		if ((*pRZ_)[ir][iz] != 0){
     			// we're within last closed surface
     			ratio[ir][iz] = NAN;
+    			thetaRZ[ir][iz] = NAN;
     		} else if (isLimiter(rr, zz)){
     			ratio[ir][iz] = NAN;
+    			thetaRZ[ir][iz] = NAN;
+
 			} else {
 				// Now we solve for mirror ratio
     			// bracketing the solutions with the range of limiter
@@ -346,14 +352,36 @@ void Orbit::mirrorRatio(MatDoub& ratio)
 	    			Doub ratioNow = Bmax/Bzero;
 	    			ratio[ir][iz] = ratioNow;
 
+	    			Doub thetaZero = theta(rr, zz);
+	    			Doub thetaMax = theta(rl, zl);
+	    			thetaRZ[ir][iz] = thetaZero / thetaMax;
 	    		} else {
 	    			// when no root or multiple roots are found
 	    			ratio[ir][iz] = NAN;
+    				thetaRZ[ir][iz] = NAN;
+
 	    		}		    	
 	    	}   		
     	}
     }
 	return;
+}
+
+Doub Orbit::theta(Doub rr, Doub zz)
+{
+	Doub deltaR = rr - RMAJOR;
+	Doub k = zz/deltaR;
+	Doub result(0);
+	if (deltaR < 0) {
+		if (zz < 0){
+			result = atan(k) - PI;
+		} else {
+			result = atan(k) + PI;
+		}
+	} else {
+		result = atan(k);
+	}
+	return result;
 }
 
 Doub Orbit::getMirrorRatio(Doub rr, Doub zz)
@@ -413,23 +441,61 @@ Doub Orbit::passing(Doub Ti, Doub Te, Doub R)
 	return foundX;
 }
 
+// void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
+// {
+// 	if (Rratio_ == nullptr) configMirror();
+// 	setTemp(Ti, Te);
+
+// 	Phi_ = new MatDoub(nw_, nh_);
+// 	for (int i = 0; i < nw_; ++i){
+//     	for (int j = 0; j < nh_; ++j){
+//     		if (std::isnan((*Rratio_)[i][j])){
+//     			(*Phi_)[i][j] = NAN;
+//     		} else {
+// 	    		Doub mirrorR = (*Rratio_)[i][j];
+// 	    		Doub x = passing(Ti, Te, mirrorR);
+// 	    		(*Phi_)[i][j] = x * multiplier;
+// 	    	}
+//     	}
+//     }
+// }
+
 void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
 {
-	if (Rratio_ == nullptr) configMirror();
-	setTemp(Ti, Te);
+	VecDoub phiList;
+	VecDoub psiList;
 
+	INTERP2D psiRZ(rGrid_, zGrid_, psiRZ_);
+
+	for(Doub r = rllmtr_; r < rrlmtr_; r += 0.002){
+		Doub R = getMirrorRatio(r, 0);
+		if (!std::isnan(R)) {
+			Doub x = passing(Ti, Te, R); // in normalized units e phi/Te
+			Doub psi = psiRZ.interp(r, 0);
+			phiList.push_back(x);
+			psiList.push_back(psi);
+		}
+	}
+	INTERP1D phiOfPsi(psiList, phiList);
+
+	// now fill in the potential
 	Phi_ = new MatDoub(nw_, nh_);
 	for (int i = 0; i < nw_; ++i){
     	for (int j = 0; j < nh_; ++j){
     		if (std::isnan((*Rratio_)[i][j])){
     			(*Phi_)[i][j] = NAN;
     		} else {
-	    		Doub mirrorR = (*Rratio_)[i][j];
-	    		Doub x = passing(Ti, Te, mirrorR);
-	    		(*Phi_)[i][j] = x * multiplier;
+	    		Doub thetaRatio = (*thetaRZ_)[i][j];
+
+	    		Doub psiNow = (*psiRZ_)[i][j];
+	    		Doub phiMid = phiOfPsi.interp(psiNow);
+
+	    		Doub phi = phiMid * pow( cos(0.5 * PI * thetaRatio), 6);
+	    		(*Phi_)[i][j] = phi * multiplier;
 	    	}
     	}
     }
+    return;
 }
 
 void Orbit::setTemp(Doub Ti, Doub Te)

@@ -193,8 +193,8 @@ void Orbit::writePastukhov( Doub Ti, Doub Te, Doub multiplier, std::ofstream &ou
 	std::cerr << "writing to file." << std::endl;
 
 	std::cerr << "calling setPassing" << std::endl;
-        setPassing(Ti, Te, multiplier);
-        std::cerr << "writing to file." << std::endl;
+    setPassing(Ti, Te, multiplier);
+    std::cerr << "writing to file." << std::endl;
 
 	if (!output.is_open()) {
     	std::cerr << "Unable to open output file" << std::endl; 

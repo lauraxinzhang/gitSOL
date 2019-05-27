@@ -39,7 +39,7 @@
 // Numbers specific to LTX geometry
 #define BMAGAXIS  2000                   // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
 #define NPERORBIT 20                     // steps per Lamor orbit, from Boris convergence test.
-
+#define RMAJOR    0.4  
 
 
 /** Choose which interpolater to use throughout the class */

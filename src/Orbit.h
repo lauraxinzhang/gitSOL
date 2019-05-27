@@ -83,7 +83,13 @@ class Orbit
 		 * \note    TODO: deal with the up-down asymmetry. Define mirror ratio respect to the 
 		 *          lower field on the limiter.
 		 */
-		void mirrorRatio(MatDoub& ratio);
+		void mirrorRatio(MatDoub& ratio, MatDoub& thetaRZ);
+
+		/**
+		 * \brief Calculate relative angle with respect to geometric center
+		 *
+		 */
+		Doub Orbit::theta(Doub rr, Doub zz);
 
 		/**
 		 * \brief Get the magnetic field at a position
@@ -294,12 +300,14 @@ class Orbit
 	    MatDoub * Bmod_;
 	    MatDoub * Rratio_; // initialized as nullptr until Orbit::configMirror is called.
 	    MatDoub * Phi_;  // initialized as nullptr until Orbit::setPastukhov is called.
+	    MatDoub * thetaRZ_; // angle ratio theta/thetaMax with respect to magnetic center. initialized with Rratio_
 
 	    MatDoub * Er_; // stored on shifted grid rGrid_ + (dr_ / 2)
 	    MatDoub * Ez_; // stored on shifted grid zGrid_ + (dz_ / 2)
 
 	    MatDoub * psiRZ_;
 	    MatDoub * pRZ_;
+
 
 	    VecDoub * rGrid_; // r grid points
 	    VecDoub * zGrid_; // z grid points
