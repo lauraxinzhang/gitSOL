@@ -82,7 +82,7 @@ Doub PassingHelp::operator() (Doub phiTilde)
 	Doub Ie = function.interp(xe, R_);
 	Doub Ii = function.interp(xi, R_);
 
-	Doub diff = Ie - (ME / MI) * (Ti_ / Te_) * Ii;
+	Doub diff = Ie - pow((ME / MI) * (Ti_ / Te_), 0.5) * Ii;
 
 	//std::cerr << "input: " << phiTilde << " Ie " << Ie << " Ii " << Ii << " current diff: " << diff << std::endl;
 	return diff;
@@ -166,5 +166,22 @@ eFieldHelp::eFieldHelp(VecDoub lList, VecDoub potList)
 Doub eFieldHelp::operator() (Doub l)
 {
 	return helper_.interp(l);
+}
+
+histogram::histogram(Doub min, Doub max, Doub numBin)
+		  : min_(min), max_(max), bins_(nullptr)
+{
+	Doub gridsize = (max_ - min_) / numBin;
+	gridsize_ = gridsize;
+	VecDoub * bins = new VecDoub(numBin);
+	bins_ = bins;
+	return;
+}
+
+void histogram::addToBin(Doub val)
+{
+	int index = (int) ( (val - min_ ) / gridsize_);
+	(*bins_)[index]++;
+	return;
 }
 

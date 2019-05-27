@@ -519,11 +519,11 @@ Vector Orbit::getE(const Vector& pos)
 	if (rShift_ == nullptr) setGridShift();
 	if (Er_ == nullptr) setEField();
 
-	std::cerr << "before interp" << std::endl;
+//	std::cerr << "before interp" << std::endl;
 	INTERP2D fieldR((*rShift_),  (*zGrid_ ), *Er_);
 	INTERP2D fieldZ((*rGrid_ ),  (*zShift_), *Ez_);
 
-	std::cerr << "after interp" << std::endl;
+//	std::cerr << "after interp" << std::endl;
 	Doub zz = pos.z();
 	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
 
@@ -531,11 +531,11 @@ Vector Orbit::getE(const Vector& pos)
 	// std::cerr << (*rShift_)[0] << std::endl;
 
 	if ( rr >= (*rShift_).front() && rr <= (*rShift_).back()){
-		std::cerr << "calling interp in r" << std::endl;
+//		std::cerr << "calling interp in r" << std::endl;
 		Er = fieldR.interp(rr, zz);
 	}
 	if ( zz >= (*zShift_).front() && zz <= (*zShift_).back()){
-		std::cerr << "calling interp in z" << std::endl;
+//		std::cerr << "calling interp in z" << std::endl;
 		
 		Ez = fieldZ.interp(rr, zz);
 	}
@@ -694,13 +694,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 	setPastukhov(Ti, Te, mult);
 	setEField();
 
-	// std::cerr<< "mass" << mass << "dt" << dt << std::endl; 
-
-	// A default electric field of 0;
-    // Vector EField(0, 0, 0);
-
 	std::default_random_engine generator(int(time(NULL)));
-
     std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
 
 	#pragma omp parallel
@@ -751,7 +745,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 
 			    part.setPos(posi);
 			    part.setVel(veli);
-
+			    part.setSpec(spec);
 			    for (int step = 0; step < maxiter; ++step){ 
 					posNow = part.pos();
 			    	BNow = getB(posNow);

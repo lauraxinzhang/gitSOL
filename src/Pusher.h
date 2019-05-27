@@ -61,7 +61,7 @@ class Pusher{
         /**
          * \brief A parallel particle pusher, collects lost and trapped particles
          */
-        double losscone(double energy, bool spec, int nparts, int maxiter, bool write);
+        double losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix);
 
         /**
          * \brief Generates velocity vector from a Gaussian distribution.
@@ -72,6 +72,7 @@ class Pusher{
          * \brief Generates velocity vector from flux source distribution v*Gaussian
          */
         Vector flux(double center, double vbar, std::default_random_engine& generator);
+
 //---------------------------------------  NBI   ---------------------------------------------
 
 
@@ -144,11 +145,14 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
     for (int i = 0; i < iter; i++){
     //std::cerr << "pushing iteration: " << i << std::endl;    
         Vector posNow = part.pos();
-            Vector BNow = (*geo_).getB(posNow);
-            Vector ENow = (*geo_).getE(posNow);
-        if (write && (i % 500 == 0)){
-                    coord << part.pos() << std::endl;
-            }
+        Vector BNow = (*geo_).getB(posNow);
+        Vector ENow = (*geo_).getE(posNow);
+        if (write && (i % 2 == 0)){
+            coord << part.pos() << std::endl;
+            double Ex = pow(part.vel().x(), 2) * 0.5 * part.mass()/QE;
+	    double Eperp = part.energy() - Ex;    
+	std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
+        }
             part.move(ENow, BNow, dt);
         //int lastCrossed = 26;// start at the last sightline (first to cross)
 //		std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
@@ -210,37 +214,33 @@ void Pusher<T>::midplaneBurst(double temperature, int spec, int nparts, int maxi
     Doub mass = MI * (1 - spec) + ME * spec;
     Doub vbar = sqrt(temperature  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
 
-    // Doub Bmin = (*geo_).getModB(Vector(0, 0, 0));
     // decoupling dt from magnetic field
-    Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
+    Doub Btypical = BMAGAXIS; // magnetic field on the order of unity Tesla.
     Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28 ( Btypical is in Gauss. The only place this is the case.
     Doub TLamor = 1.0/fLamor;
     Doub dt = TLamor / NPERORBIT;
     std::cerr << "dt: " << dt;
- //   int iter = floor(tmax/dt);
     std::cerr <<  " iter: " << maxiter << std::endl;
     std::default_random_engine generator(int(time(NULL)));
     
     for (int ipart = 0; ipart < nparts; ipart++){
 
-        Vector veli = gaussian(0, vbar, generator);
-//	Vector veli = Vector(1000, 0, 0);
-//      std::cerr << "inital velocity: " << veli << std::endl;
+        // Vector veli = gaussian(0, vbar, generator);
+//        Vector veli = flux(0, vbar, generator);
+        Vector veli(121774.0, 106491.0,0);
         Vector posi(0, 0, 0);
         Vector BNow = (*geo_).getB(posi);
         Vector vPara = veli.parallel(BNow);
-                Vector vPerp = veli.perp(BNow);  
-                Vector vGC = Vector(vPara.mod(), vPerp.mod(), 0);
-//        std::cerr << "guiding center velocity: " << vGC << std::endl; 
-       Particle part(posi, veli, spec);
-//	std::cerr << "mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
+        Vector vPerp = veli.perp(BNow);  
+        Vector vGC = Vector(vPara.mod(), vPerp.mod(), 0);
+        Particle part(posi, veli, spec);
         pushSingle(part, dt, maxiter, write, coord);
     }
     return;
 }
 
 template <class T>
-double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write)
+double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bool write, std::string& suffix)
 {
     std::list<Vector> initVel;
     std::list<Vector> finlVel;
@@ -250,36 +250,33 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
     Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
     
     // decoupling dt from magnetic field
-    Doub Btypical = 10000; // magnetic field on the order of unity Tesla.
+    Doub Btypical = BMAGAXIS; // magnetic field on the order of BMAGAXIS.
     Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
     Doub TLamor = 1/fLamor;
     Doub dt = TLamor / NPERORBIT;
-//    int maxiter = (int) (tmax / dt);
 
     std::default_random_engine generator(int(time(NULL)));
 //    omp_set_num_threads(1);
     #pragma omp parallel
     {
-	
         generator.seed( int(time(NULL)) ^ omp_get_thread_num() ); // seed the distribution generator
 
         Vector veli, posNow, BNow, ENow, vPara, vPerp, vGC;
         Vector posi(0, 0, 0);
         Particle part(posi, veli, spec);
-//        part.setSpec(spec);
-//	std::cerr << "mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
         std::list<Vector> initVel_private; // A list of (vpara, vperp)
         std::list<Vector> finlVel_private;
         std::list<Doub>   paraVel_private; // A list of parallel velocity at exit
 
         #pragma omp for private(part, veli, \
-        posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
+            posi, posNow, BNow, ENow, vPara, vPerp, vGC) 
             for (int i=0; i < nparts; ++i ){
                 veli = gaussian(0, vbar, generator);
           //      veli = Vector(1000, 0, 0);
-		part.setPos(posi);
+          //      veli = flux(0, vbar, generator);
+                part.setPos(posi);
                 part.setVel(veli);
-		part.setSpec(spec);
+                part.setSpec(spec);
                 BNow = (*geo_).getB(posi);
 
                 vPara = veli.parallel(BNow);
@@ -287,16 +284,14 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
                 vGC = Vector(vPara.mod(), vPerp.mod(), 0); // Guiding Center velocity in (vpara, vperp)
 
                 initVel_private.push_back(vGC);
-	//	std::cerr << "inside mass: " << part.mass() << "charge: " << part.charge()<< std::endl;
                 for (int step = 0; step < maxiter; ++step){ 
                     posNow = part.pos();
                     BNow = (*geo_).getB(posNow);
                     ENow = (*geo_).getE(posNow);
 
                     part.move(ENow, BNow, dt);
-	//	    std::cerr << "E, "<< ENow << ", pos, " << posNow << ", v, " << part.vel() << std::endl;
                     if ((*geo_).isLimiter(posNow)){
-        //                std::cerr << "particle lost to limiter after" << step \
+        //              std::cerr << "particle lost to limiter after" << step \
                         << "iterations." << std::endl;
                         part.lost();
                         finlVel_private.push_back(vGC); // a list of initial velocities that are lost
@@ -315,44 +310,33 @@ double Pusher<T>::losscone(double energy, bool spec, int nparts, int maxiter, bo
     }
     std::cerr << "initial velocities: " << initVel.size() << std::endl;    
     std::cerr << std::endl << "ones that were lost: " << finlVel.size() << std::endl;
-    //TODO: implement outputting
-    int species = spec;
-//    std::string suffix = "_Ti_" + std::to_string(Ti).substr(0, 3) \
-//    + "_Te_" + std::to_string(Te).substr(0, 3) \
-//    + "_dr_" + std::to_string(dr).substr(0, 4) \
-//    + "_mult_" + std::to_string(mult).substr(0, 3) \
-//    + "_spec_" + std::to_string(species).substr(0, 1) \
-//    + ".out";
+    
+    //TODO: FIX THIS!!! MOVE TO MAIN 
 
-    std::string suffix = "test.out";
-    if (write){
+    // std::string suffix = "test.out";
+    if (true){
         ofstream initial;
-        initial.open("output/initial" + suffix);
+        initial.open("output_new/initial" + suffix);
         ofstream final;
-        final.open("output/final" + suffix);
-    //    initial << Ti << Te << std::endl;
-
+        final.open("output_new/final" + suffix);
         while (!initVel.empty()){
             initial << initVel.front() << std::endl;
-//            initial3 << initVel3.front() << std::endl;
-
             initVel.pop_front();
-//            initVel3.pop_front();
         }    
-
         while (!finlVel.empty()){
             final << finlVel.front() << std::endl;
-//            final3 << finlVel3.front() << std::endl;
-
             finlVel.pop_front();
-//            finlVel3.pop_front();
         }
     } 
     Doub gammaOut = 0;
+    Doub gammaSquared = 0;
+    int n = paraVel.size();
     while(!paraVel.empty()){
         gammaOut += paraVel.front();
+        gammaSquared += pow( paraVel.front(), 2 );
         paraVel.pop_front();
-    }    
+    }
+    //std::cout << " spec: " << spec << " total: " << gammaOut << " mean: " << gammaOut/n << " SW mean: " << gammaSquared / gammaOut << std::endl;    
     return gammaOut;
 }
 
@@ -371,12 +355,21 @@ Vector Pusher<T>::gaussian(double center, double vbar, std::default_random_engin
 template <class T>
 Vector Pusher<T>::flux(double center, double vbar, std::default_random_engine& generator)
 {
-    std::uniform_distribution<double> distribution(0, 1);
-    // TODO: transform the uniformly distributed numbers into flux function
-    double vx = distribution(generator); // generate 3 normal distributed velocities.
-    double vy =  distribution(generator);
-    double vz = distribution(generator);
+    std::normal_distribution<double> gauss(center, vbar); // generate a Gaussian distributed velocity
+    double vy =  gauss(generator);
+    double vz = gauss(generator);
 
+    std::bernoulli_distribution coinflip(0.5);
+    bool coin = coinflip(generator); // choose which direction x is going
+    int sign;
+    if (coin){
+        sign = 1;
+    } else { sign = - 1; }
+    
+    std::uniform_real_distribution<double> uniform(0, 1); 
+    double y = uniform(generator);
+    double vx = sign * sqrt(- 2 * pow(vbar, 2) * log( 1 - y)); // from CDF transform.
+	//std::cout << vx << std::endl;
     Vector vel(vx, vy, vz);
     return vel;
 }

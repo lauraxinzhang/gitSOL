@@ -14,7 +14,7 @@
 Mirror::Mirror(double Ti, double Te, double Buniform, double R, double mult, double L, int nx)
         : Ti_(Ti), Te_(Te), Buniform_(Buniform), R_(R), L_(L),
           nx_(nx), 
-          xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr), density_(nullptr)
+          xGrid_(nullptr), xShift_(nullptr), potential_(nullptr), EField_(nullptr), density_(nullptr), velocities_(nullptr)
 {
     // make sure nx is odd
     assert(nx % 2 == 1);
@@ -89,7 +89,7 @@ void Mirror::setPotential()
 
 void Mirror::setPotential(double Rratio, double mult)
 {
-    double phiMid = findPhiMid(Rratio) * mult;
+    double phiMid = findPhiMid(Rratio) * Te_ * mult;
     //std::cerr << "Found phiMid: " << phiMid << std::endl;
     VecDoub * newgrid = new VecDoub(nx_);
 
@@ -98,9 +98,9 @@ void Mirror::setPotential(double Rratio, double mult)
 
     for (int i = 0; i < nx_; i++){
         double x = (*xGrid_)[i] / xlim_;
-        double phi = phiMid * cos(0.5 * PI * x);
+        double phi = phiMid * pow( cos(0.5 * PI * x), 6);
         (*newgrid)[i] = phi;
-        //std::cerr << "x: " << x << " phi: " << phi << std::endl;
+        //std::cerr << "x," << x << " phi," << phi << std::endl;
     }
     potential_ = newgrid;
     return;
@@ -221,12 +221,28 @@ void Mirror::printData(std::string& option, std::ostream &os)
         }
     }
     else if (option == std::string("efield")){
-        for (int i = 0; i < xShift_ -> size(); i++){
-            double xnow = (*xShift_)[i];
-            double output = (*EField_)[i];
-            os << xnow << "," << output << std::endl;
+	if (EField_ == nullptr){
+            os << "Electric field was never calculated" << std::endl;
+        } else {
+            for (int i = 0; i < xShift_ -> size(); i++){
+                double xnow = (*xShift_)[i];
+                double output = (*EField_)[i];
+                os << xnow << "," << output << std::endl;
+            }
         }
-    }
+    } else if (option == std::string("roots")){
+        for (double R = 1; R < 5; R += 0.2){
+            //std::cerr << "R: " << R << std::endl;
+            for (double tau = 0.2; tau < 1; tau += 0.1){
+	 	PassingHelp help(tau, 1, R);
+    		Doub upper = 24.9 * tau;
+    		Doub result = rtbis(help, 0, upper, 1E-9);
+              //  std::cerr << "tau: " << tau << "result: " << result << std::endl;		
+                os << R << "," << tau << "," << result << std::endl;
+            }
+        }
+    }	
+
 }
 
 

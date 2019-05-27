@@ -75,6 +75,9 @@ class Particle
         double mass() const;
 
     	double charge() const;
+
+	double energy() const;
+
 	void setPos(const Vector& right);
     	void setVel(const Vector& right);
     	void setSpec(const bool right);
