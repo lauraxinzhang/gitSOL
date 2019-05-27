@@ -163,7 +163,7 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
             } else {
             // Next line for Mirror only
                 Vector position = part.pos();
-                (*geo_).addToBin(position);
+                (*geo_).addToBin(part);
             }
             if (write){ // always collect for density calculations
             // Next line for NBI only

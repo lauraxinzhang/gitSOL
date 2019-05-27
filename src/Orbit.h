@@ -89,7 +89,7 @@ class Orbit
 		 * \brief Calculate relative angle with respect to geometric center
 		 *
 		 */
-		Doub Orbit::theta(Doub rr, Doub zz);
+		Doub theta(Doub rr, Doub zz);
 
 		/**
 		 * \brief Get the magnetic field at a position

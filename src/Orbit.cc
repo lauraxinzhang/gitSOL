@@ -465,7 +465,7 @@ void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
 	VecDoub phiList;
 	VecDoub psiList;
 
-	INTERP2D psiRZ(rGrid_, zGrid_, psiRZ_);
+	INTERP2D psiRZ((*rGrid_), (*zGrid_), (*psiRZ_));
 
 	for(Doub r = rllmtr_; r < rrlmtr_; r += 0.002){
 		Doub R = getMirrorRatio(r, 0);
