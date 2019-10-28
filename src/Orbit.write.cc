@@ -186,11 +186,15 @@ void Orbit::writeMirrorRatio(std::ofstream &output)
     return;
 }
 
-void Orbit::writePastukhov( Doub Ti, Doub Te, std::ofstream &output)
+void Orbit::writePastukhov( Doub Ti, Doub Te, Doub multiplier, std::ofstream &output)
 {
 	std::cerr << "calling setPastukhov" << std::endl;
-	setPastukhov(Ti, Te);
+	//setPastukhov(Ti, Te, multiplier);
 	std::cerr << "writing to file." << std::endl;
+
+	std::cerr << "calling setPassing" << std::endl;
+    setPassing(Ti, Te, multiplier);
+    std::cerr << "writing to file." << std::endl;
 
 	if (!output.is_open()) {
     	std::cerr << "Unable to open output file" << std::endl; 
@@ -233,6 +237,34 @@ void Orbit::temperature(Doub Ti_start, Doub dT, int iter, Doub R)
 		TiNow += dT;
 	}
 	temp.close();
+
+	return;
+}
+
+void Orbit::writePassing(Doub Ti_start, Doub dT, Doub R_start, Doub dR, int iterT, int iterR)
+{
+	ofstream output;
+	output.open("./output/passingSolution.out");
+	output << std::setprecision(8);
+
+	int iT(0), iR(0);
+	Doub Tnow(Ti_start), Rnow(R_start);
+	while (iT <= iterT){
+		std::cerr << "Ti: " << Tnow;
+		while (iR <= iterR){
+			std::cerr << " R: " << Rnow;
+			Doub phi = passing(Tnow, 1, Rnow);
+			std::cerr << " phi: " << phi << std::endl;
+			output << Tnow << ' ' << Rnow << ' ' << phi << std::endl;
+			iR++;
+			Rnow += dR;
+		}
+		iT++;
+		Tnow += dT;
+		Rnow = R_start;
+		iR = 0;
+	}
+	output.close();
 
 	return;
 }
@@ -283,9 +315,9 @@ void Orbit::printData()
 
 	*/
 	ofstream passout1; // LOLOLOLOL
-	passout1.open("./output/passTest.out");
+	passout1.open("./output/passingTest.out");
 	// input Ti, Te here. keep Te 1.
-	writePastukhov(0.2, 1, passout1); // pass modified
+	writePastukhov(1, 1,1, passout1); // pass modified
 	passout1.close();
 
 	/*
@@ -303,11 +335,12 @@ void Orbit::printData()
 	Vector start(rStart, 0, zStart);
 	orbit.eField(2, 1, start, 0.005, 15000, eFieldLine2);
 	*/
-
+/*
 	ofstream Er, Ez;
 	Er.open("./output/Er.out");
 	Ez.open("./output/Ez.out");
 	writeEField(0.2, 1, Er, Ez, 2);
 	Er.close();
 	Ez.close();
+*/
 }

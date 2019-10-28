@@ -7,10 +7,6 @@
  * 
  */
 
-#define ME 9.1E-31                        // electron mass, in kilogram
-#define MI 1.6726219E-27                  // ion mass, in kilogram
-#define QE 1.60217662E-19                 // elementary charge, in coulomb
-
 #include "Particle.h"
 
 Particle::Particle()
@@ -35,6 +31,15 @@ Particle::Particle(const Vector& pos, const Vector& vel, bool spec)
 	}
 }
 
+Particle::Particle(const Vector& pos, const Vector& vel, int mass, int charge)
+		:mass_(mass * MI), charge_(charge * QE),
+		 pos_(pos.x(), pos.y(), pos.z()),
+		 vel_(vel.x(), vel.y(), vel.z()),
+		 lost_(false), generator_(int(time(NULL)))
+{
+
+}
+
 Vector Particle::pos() const
 {
 	return pos_;
@@ -53,6 +58,17 @@ bool Particle::spec() const
 double Particle::mass() const
 {
 	return mass_;
+}
+
+double Particle::charge() const
+{
+	return charge_;
+}
+
+double Particle::energy() const
+{
+	double result = 0.5 * mass() * pow(vel().mod() , 2)/QE;
+	return result;
 }
 
 void Particle::setPos(const Vector& right)
@@ -74,6 +90,14 @@ void Particle::setVel(const Vector& right)
 void Particle::setSpec(const bool right)
 {
 	species_ = right;
+	// CHANGE THE MASS AND CHARGE TOO!!!!!!
+	if (species_){
+		charge_ = -1 * QE;
+		mass_ = ME;
+	} else {
+		charge_ = 1 * QE;
+		mass_ = MI;
+	}
 	return;
 }
 

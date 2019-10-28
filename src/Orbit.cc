@@ -52,7 +52,7 @@
 */
 
 Orbit::Orbit(const std::string& field, const std::string& limiter)
-	: Phi_(nullptr), Rratio_(nullptr), Er_(nullptr), Ez_(nullptr),\
+	: Phi_(nullptr), Rratio_(nullptr), thetaRZ_(nullptr), Er_(nullptr), Ez_(nullptr),\
 	  rShift_(nullptr), zShift_(nullptr)
 {
 	// Read and configure field here, 
@@ -301,8 +301,11 @@ void Orbit::configMirror()
 {
 	assert(Rratio_ == nullptr);
 	MatDoub * Rratio = new MatDoub(nw_, nh_);
-	mirrorRatio( *Rratio );
+	MatDoub * thetaRZ = new MatDoub(nw_, nh_);
+
+	mirrorRatio( *Rratio , *thetaRZ);
 	Rratio_ = Rratio;
+	thetaRZ_ = thetaRZ;
 
 	/* this following line doesn't work because Rratio is still a nullptr
 	mirrorRatio(*Rratio_);
@@ -310,7 +313,7 @@ void Orbit::configMirror()
 	return;
 }
 
-void Orbit::mirrorRatio(MatDoub& ratio)
+void Orbit::mirrorRatio(MatDoub& ratio, MatDoub& thetaRZ)
 {
 	psiLimiter limit( (*rGrid_), (*zGrid_), (*psiRZ_), (*rLimit_), (*zLimit_) );
 	for (int iz = 0; iz < nh_; ++iz){
@@ -326,8 +329,11 @@ void Orbit::mirrorRatio(MatDoub& ratio)
     		if ((*pRZ_)[ir][iz] != 0){
     			// we're within last closed surface
     			ratio[ir][iz] = NAN;
+    			thetaRZ[ir][iz] = NAN;
     		} else if (isLimiter(rr, zz)){
     			ratio[ir][iz] = NAN;
+    			thetaRZ[ir][iz] = NAN;
+
 			} else {
 				// Now we solve for mirror ratio
     			// bracketing the solutions with the range of limiter
@@ -346,14 +352,36 @@ void Orbit::mirrorRatio(MatDoub& ratio)
 	    			Doub ratioNow = Bmax/Bzero;
 	    			ratio[ir][iz] = ratioNow;
 
+	    			Doub thetaZero = theta(rr, zz);
+	    			Doub thetaMax = theta(rl, zl);
+	    			thetaRZ[ir][iz] = thetaZero / thetaMax;
 	    		} else {
 	    			// when no root or multiple roots are found
 	    			ratio[ir][iz] = NAN;
+    				thetaRZ[ir][iz] = NAN;
+
 	    		}		    	
 	    	}   		
     	}
     }
 	return;
+}
+
+Doub Orbit::theta(Doub rr, Doub zz)
+{
+	Doub deltaR = rr - RMAJOR;
+	Doub k = zz/deltaR;
+	Doub result(0);
+	if (deltaR < 0) {
+		if (zz < 0){
+			result = atan(k) - PI;
+		} else {
+			result = atan(k) + PI;
+		}
+	} else {
+		result = atan(k);
+	}
+	return result;
 }
 
 Doub Orbit::getMirrorRatio(Doub rr, Doub zz)
@@ -395,6 +423,75 @@ void Orbit::setPastukhov( Doub Ti, Doub Te, Doub multiplier)
 	    		Doub mirrorR = (*Rratio_)[i][j];
 	    		Doub x = pastukhov(Ti, Te, mirrorR);
 	    		(*Phi_)[i][j] = x * multiplier;
+	    	}
+    	}
+    }
+    return;
+}
+
+Doub Orbit::passing(Doub Ti, Doub Te, Doub R)
+{
+	if (Rratio_ == nullptr){
+		configMirror();
+	}
+	setTemp(Ti, Te);
+	PassingHelp help(Ti, Te, R);
+	Doub upper = 24.9 * Ti_ / Te_;
+	Doub foundX = rtbis(help, 0, upper, 1E-9); // root bracketed between 0 and 10, required by input file.
+	return foundX;
+}
+
+// void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
+// {
+// 	if (Rratio_ == nullptr) configMirror();
+// 	setTemp(Ti, Te);
+
+// 	Phi_ = new MatDoub(nw_, nh_);
+// 	for (int i = 0; i < nw_; ++i){
+//     	for (int j = 0; j < nh_; ++j){
+//     		if (std::isnan((*Rratio_)[i][j])){
+//     			(*Phi_)[i][j] = NAN;
+//     		} else {
+// 	    		Doub mirrorR = (*Rratio_)[i][j];
+// 	    		Doub x = passing(Ti, Te, mirrorR);
+// 	    		(*Phi_)[i][j] = x * multiplier;
+// 	    	}
+//     	}
+//     }
+// }
+
+void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
+{
+	VecDoub phiList;
+	VecDoub psiList;
+
+	INTERP2D psiRZ((*rGrid_), (*zGrid_), (*psiRZ_));
+
+	for(Doub r = rllmtr_; r < rrlmtr_; r += 0.002){
+		Doub R = getMirrorRatio(r, 0);
+		if (!std::isnan(R)) {
+			Doub x = passing(Ti, Te, R); // in normalized units e phi/Te
+			Doub psi = psiRZ.interp(r, 0);
+			phiList.push_back(x);
+			psiList.push_back(psi);
+		}
+	}
+	INTERP1D phiOfPsi(psiList, phiList);
+
+	// now fill in the potential
+	Phi_ = new MatDoub(nw_, nh_);
+	for (int i = 0; i < nw_; ++i){
+    	for (int j = 0; j < nh_; ++j){
+    		if (std::isnan((*Rratio_)[i][j])){
+    			(*Phi_)[i][j] = NAN;
+    		} else {
+	    		Doub thetaRatio = (*thetaRZ_)[i][j];
+
+	    		Doub psiNow = (*psiRZ_)[i][j];
+	    		Doub phiMid = phiOfPsi.interp(psiNow);
+
+	    		Doub phi = phiMid * pow( cos(0.5 * PI * thetaRatio), 1);
+	    		(*Phi_)[i][j] = phi * multiplier;
 	    	}
     	}
     }
@@ -488,11 +585,11 @@ Vector Orbit::getE(const Vector& pos)
 	if (rShift_ == nullptr) setGridShift();
 	if (Er_ == nullptr) setEField();
 
-	std::cerr << "before interp" << std::endl;
+//	std::cerr << "before interp" << std::endl;
 	INTERP2D fieldR((*rShift_),  (*zGrid_ ), *Er_);
 	INTERP2D fieldZ((*rGrid_ ),  (*zShift_), *Ez_);
 
-	std::cerr << "after interp" << std::endl;
+//	std::cerr << "after interp" << std::endl;
 	Doub zz = pos.z();
 	Doub rr = sqrt(pos.x() * pos.x() + pos.y() * pos.y());
 
@@ -500,11 +597,11 @@ Vector Orbit::getE(const Vector& pos)
 	// std::cerr << (*rShift_)[0] << std::endl;
 
 	if ( rr >= (*rShift_).front() && rr <= (*rShift_).back()){
-		std::cerr << "calling interp in r" << std::endl;
+//		std::cerr << "calling interp in r" << std::endl;
 		Er = fieldR.interp(rr, zz);
 	}
 	if ( zz >= (*zShift_).front() && zz <= (*zShift_).back()){
-		std::cerr << "calling interp in z" << std::endl;
+//		std::cerr << "calling interp in z" << std::endl;
 		
 		Ez = fieldZ.interp(rr, zz);
 	}
@@ -605,7 +702,7 @@ void Orbit::particlePush(Doub dr, Doub energy, bool spec, Doub er, Doub ephi, Do
     		break;
     	}
 
-    	if (step % 1000 == 0){ // output every 500 steps
+    	if (step % 1000 == 0){ // output every 1000 steps
     	// if (true){ // always output
 	    	coordinatesRZ  << rNow << "," << phiNow << "," << zNow << std::endl;
 	    	coordinatesXYZ << xNow << "," << yNow << "," << zNow << std::endl;
@@ -663,13 +760,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 	setPastukhov(Ti, Te, mult);
 	setEField();
 
-	// std::cerr<< "mass" << mass << "dt" << dt << std::endl; 
-
-	// A default electric field of 0;
-    // Vector EField(0, 0, 0);
-
 	std::default_random_engine generator(int(time(NULL)));
-
     std::normal_distribution<double> distribution(0.0, vbar); // generate a Gaussian distributed velocity
 
 	#pragma omp parallel
@@ -720,7 +811,7 @@ Doub Orbit::particleStats(Doub dr, Doub energy, bool spec, int nparts, \
 
 			    part.setPos(posi);
 			    part.setVel(veli);
-
+			    part.setSpec(spec);
 			    for (int step = 0; step < maxiter; ++step){ 
 					posNow = part.pos();
 			    	BNow = getB(posNow);

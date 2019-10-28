@@ -14,6 +14,7 @@
 #include <time.h> // for seeding the random engine.
 #include <random>
 #include "Vector.h"
+#include "Constants.h"
 
 /**
  * \brief  A class for individual particle objects
@@ -41,6 +42,18 @@ class Particle
     	 */
     	Particle(const Vector& pos, const Vector& vel, bool spec);
 
+        /**
+         * \brief Another constructor for particles other than proton and electrons
+         * \param pos    position of particle
+         * \param vel    velocity of particle
+         * \param mass   Mass number of particle (in proton masses)
+         * \param charge Charge number of particle
+         *
+         */
+        Particle(const Vector& pos, const Vector& vel, int mass, int charge);
+
+
+
     	/**
     	 * \brief Data getter for position
     	 */
@@ -61,7 +74,11 @@ class Particle
          */
         double mass() const;
 
-    	void setPos(const Vector& right);
+    	double charge() const;
+
+	double energy() const;
+
+	void setPos(const Vector& right);
     	void setVel(const Vector& right);
     	void setSpec(const bool right);
 
