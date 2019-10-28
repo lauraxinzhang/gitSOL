@@ -490,7 +490,7 @@ void Orbit::setPassing(Doub Ti, Doub Te, Doub multiplier)
 	    		Doub psiNow = (*psiRZ_)[i][j];
 	    		Doub phiMid = phiOfPsi.interp(psiNow);
 
-	    		Doub phi = phiMid * pow( cos(0.5 * PI * thetaRatio), 6);
+	    		Doub phi = phiMid * pow( cos(0.5 * PI * thetaRatio), 1);
 	    		(*Phi_)[i][j] = phi * multiplier;
 	    	}
     	}
