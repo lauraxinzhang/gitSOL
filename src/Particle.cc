@@ -237,7 +237,10 @@ void Particle::scatter(Vector& B)
 {
 	std::bernoulli_distribution distribution(0.5);
 	bool sign = distribution(generator_); // choose the orientation of the new vector by random;
-	Vector newv = vel().turn(B, sign);
+	
+	Vector axis = vel().cross(B).normalize();
+
+	Vector newv = vel().turn(axis, sign);
 	setVel(newv);
 	return;
 }

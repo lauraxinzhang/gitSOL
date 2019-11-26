@@ -207,22 +207,16 @@ void Orbit::test()
 		std::cerr << " - Testing vector turning" << std::endl;
 		Vector axis(1, 0, 0);
 
-		Vector vxy(2, 4, 0); // a test vector in x-y plane;
-		Vector vxz(2, 0, 4); // a test vector in x-z plane;
+		Vector vi(0, 4, 2); // a test vector in x-y plane;
+		Vector vplus(0, -2, 4); // a test vector in x-z plane;
+		Vector vminus(0, 2, -4);
 
-		Vector xyplus(-4, 2, 0);
-		Vector xyminus(4, -2, 0);
-		Vector xzplus(-4, 0, 2);
-		Vector xzminus(4, 0, -2);
-
-		bool resultxy = (vxy.turn(axis, 1) == xyplus) && (vxy.turn(axis, 0) == xyminus);
-		bool resultxz = (vxz.turn(axis, 1) == xzplus) && (vxz.turn(axis, 0) == xzminus);
-		
-		if (resultxy && resultxz){
+		bool result = (vi.turn(axis, 1) == vplus) && (vi.turn(axis, 0) == vminus);
+		if (result){
 			std::cerr << " -- Passed" << std::endl;
 		} else {
 			std::cerr << "Something's wrong" << std::endl;
-			std::cerr << "xy turn:" << vxy.turn(axis, 1) << "should be: " << xyplus<< std::endl;
+			std::cerr << "positive turn:" << vi.turn(axis, 1) << "should be: " << vplus<< std::endl;
 		}
 	}
 
