@@ -14,7 +14,7 @@
  *      
  *          Uses nr3 routines for interpolations.     
  *
- *          Reads data from g-eqdsk files.
+ *          (deprecated) Reads data from g-eqdsk files.
  *      
  *          Uses double instead of float to avoid floating number errors.
  */

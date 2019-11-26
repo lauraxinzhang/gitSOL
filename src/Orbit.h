@@ -49,7 +49,7 @@ class Orbit
 		Orbit();
 
 		/**
-		 * \brief Another constructor to read uniform grid magnetic field
+		 * \brief Another constructor to read uniform RZ grid magnetic field
 		 * \param field Path of input field profile.
 		 * \param limiter Path of limiter coordinates.
 		 */
@@ -68,7 +68,7 @@ class Orbit
 
 		/**
 		 * \brief Configure the mirror ratio matrix. Fill in data to RRatio_ private member
-		 * \note  Need to be called when mirror ratio is needed.
+		 * \note  Need to be called when mirror ratio is needed. Calls mirrorRatio.
 		 */
 		void configMirror();
 
@@ -86,7 +86,7 @@ class Orbit
 		void mirrorRatio(MatDoub& ratio, MatDoub& thetaRZ);
 
 		/**
-		 * \brief Calculate relative angle with respect to geometric center
+		 * \brief Calculate relative poloidal angle with respect to geometric center
 		 *
 		 */
 		Doub theta(Doub rr, Doub zz);
@@ -105,6 +105,11 @@ class Orbit
 		 */
 		Doub getModB(Doub rr, Doub zz);
 
+		/**
+		 * \brief gets the mirror ratio for an arbitrary location
+		 * \param rr R position
+		 * \param zz Z position
+		 */
 		Doub getMirrorRatio(Doub rr, Doub zz);
 
 		/**
@@ -158,10 +163,15 @@ class Orbit
 
 		/**
 		 * \brief calculate E field between grids points w/ finite difference.
-		 * \details Phi_ is multiplied by Te to return to (V) unit.
+		 * \details Er is defined on rshift_ and zGrid_; Ez is defined on rGrid_ and 
+		 *          zShift_; Phi_ is multiplied by Te to return to (V) unit.
 		 */
 		void setEField();
 
+		/**
+		 * \brief create a shifted grid that electric field is defined on;
+		 * \details r is shifted to the right; z shifted up;
+		 */
 		void setGridShift();
 
 		/**
@@ -178,7 +188,7 @@ class Orbit
 		//--------------------------------------------------------------------------------------------
 
 		/**
-		 * \brief TODO:Calculates appropriate time step for each initial velocity
+		 * \brief TODO:Calculates appropriate time step for each initial velocity;
 		 */
 		Doub timeStep(Doub vv);
 

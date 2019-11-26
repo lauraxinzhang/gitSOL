@@ -74,6 +74,9 @@ class Particle
          */
         double mass() const;
 
+        /**
+         * \brief Data getter for charge
+         */
     	double charge() const;
 
 	double energy() const;
