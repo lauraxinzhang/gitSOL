@@ -344,23 +344,23 @@ int main(int argc, const char** argv)
         Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
         Pusher<Mirror> pusher(mirror); // construct a Pusher object
 
-        pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
+     //   pusher.midplaneBurst(temperature, spec, nparts, maxiter, write);
 
         std::string option("density");
         std::ofstream density("density.out");
-        mirror.printData(option, density);
+        //mirror.printData(option, density);
         
         std::string option2("phi");
         std::ofstream potential("potential.out");
-        mirror.printData(option2, potential);
+        //mirror.printData(option2, potential);
 
         std::string option3("modB");    
         std::ofstream modB("modB.out");
-        mirror.printData(option3, modB);
+        //mirror.printData(option3, modB);
 
         std::string option4("efield");    
         std::ofstream efield("efield.out");
-        mirror.printData(option4, efield);
+        //mirror.printData(option4, efield);
 
         // std::string option5("roots");
         // std::ofstream roots("roots.out");
@@ -368,7 +368,7 @@ int main(int argc, const char** argv)
 
         std::string option6("velocity");
         std::ofstream velocity("velocity.out");
-        mirror.printData(option6, velocity);
+        //mirror.printData(option6, velocity);
 
 
         int species(spec);
@@ -381,8 +381,8 @@ int main(int argc, const char** argv)
                         + ".out";
     	
         // std::cout << "mult: " << mult << " spec: " << spec;
-        // double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
-        // std::cout << " current: " << currentOut << std::endl;
+        double currentOut = pusher.losscone(temperature, spec, nparts, maxiter, write, suffix);
+        std::cout << " current: " << currentOut << std::endl;
 
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);

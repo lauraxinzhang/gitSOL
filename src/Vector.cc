@@ -177,21 +177,15 @@ void Vector::cyl2Cart(const Vector& pos, Vector& vCart)
 
 Vector Vector::turn(Vector& axis, bool sign)
 {
-	Vector vpara = parallel(axis);
-	Vector vperp = perp(axis);
-
-	// swap the perp and para to rotate 90 degrees, with randomly generated orientation given by "sign".
-	Vector newpara, newperp;
+	// assume axis is an already normalized vector; turning (sign * 90) 
+	// degrees around axis
+	Vector dotted = axis * dot(axis);
+	Vector crossed = cross(axis) * (-1); // k x v = - v x k
 	if (sign){
-		newpara = vperp * (-1);
-		newperp = vpara;
+		return crossed + dotted;
 	} else {
-		newpara = vperp;
-		newperp = vpara * (-1);
+		return dotted - crossed;
 	}
-	Vector newv = newpara + newperp;
-
-	return newv;
 }
 
 std::ostream& operator<<(std::ostream &os, const Vector& v) 
