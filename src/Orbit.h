@@ -216,6 +216,74 @@ class Orbit
 			Doub Ti, Doub Te, Doub mult, int maxiter, bool write = false);
 
 
+		//--------------------------------------------------------------------------------------------
+		//-------------------------------- End of particle pushing  ----------------------------------
+		//---------------------------------- Start thermal plasma ------------------------------------
+		//--------------------------------------------------------------------------------------------
+
+		/**
+		 * \brief Get electron temperature from a given location
+		 */
+		Doub getTe(Doub rr, Doub zz);
+
+		/**
+		 * \brief Get electron density from a given location
+		 */
+		Doub getNe(Doub rr, Doub zz);
+
+		/**
+		 * \brief Get ion temperature from a given location
+		 */
+		Doub getTi(Doub rr, Doub zz);
+
+		/**
+		 * \brief Get ion density from a given location
+		 */
+		Doub getNi(Doub rr, Doub zz);
+
+		/**
+		 * \brief The chandrasekhar function
+		 */
+		Doub chandrasekharG(Doub x);
+
+
+		/**
+		 * \brief Calculates the constants xB and nu_ab
+		 * \param part  Fast ion particle being pushed
+		 * \param partB Background species
+		 * \param xB.   To be filled in; ratio of part.speed() and background vt
+		 * \param nu_ab To be filled in; "base" collision frequency.
+		 * \details Calculates xB and nu_ab, and update values of input references.
+		 */
+		void xAndNu_ab(Particle& part, Particle& partB, Doub& xB, Doub& nu_ab);
+
+		/**
+		 * \brief Calculates the current slowing down frequency of a given particle
+		 * \param part  Particle that's currently being pushed
+		 * \param partB Background particle; only need it for mass and charge
+		 * \param xB    Ratio of particle speed and background thermal speed;
+		 * \param nu_ab "base" collision frequency, basing on local density;
+		 * \note        params xB and nu_ab should be calculated via Orbit::xAndNu_ab
+		 */
+		Doub nu_s(Particle& part, Particle& partB, Doub xB, Doub nu_ab);
+
+		/**
+		 * \brief Calculates perpendicular diffusion frequency
+		 * \param part Particle currently being pushed
+		 * \param xB    Ratio of particle speed and background thermal speed;
+		 * \param nu_ab "base" collision frequency, basing on local density;
+		 * \note        params xB and nu_ab should be calculated via Orbit::xAndNu_ab
+		 */
+		Doub nu_D(Particle& part, Doub xB, Doub nu_ab);
+
+		/**
+		 * \brief Calculates parallel diffusion frequency
+		 * \param part Particle currently being pushed
+		 * \param xB    Ratio of particle speed and background thermal speed;
+		 * \param nu_ab "base" collision frequency, basing on local density;
+		 * \note        params xB and nu_ab should be calculated via Orbit::xAndNu_ab
+		 */
+		Doub nu_para(Particle& part, Doub xB, Doub nu_ab);
 
 		//--------------------------------------------------------------------------------------------
 		//---------------------------------- Start data outputting  ----------------------------------

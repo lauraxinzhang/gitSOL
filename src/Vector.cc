@@ -175,6 +175,13 @@ void Vector::cyl2Cart(const Vector& pos, Vector& vCart)
 	return;
 }
 
+void Vector::cart2Cyl(const Vector& pos, Vector& vCyl)
+{
+	vCyl.setZ(z());
+
+	return;
+}
+
 Vector Vector::turn(Vector& axis, bool sign)
 {
 	// assume axis is an already normalized vector; turning (sign * 90) 
@@ -186,6 +193,11 @@ Vector Vector::turn(Vector& axis, bool sign)
 	} else {
 		return dotted - crossed;
 	}
+}
+
+void Vector::damp(double nu_s, double dt)
+{
+	return (*this) * (1 - nu_s * dt);
 }
 
 std::ostream& operator<<(std::ostream &os, const Vector& v) 

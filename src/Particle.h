@@ -79,9 +79,17 @@ class Particle
          */
     	double charge() const;
 
-	double energy() const;
+        /**
+         * \brief Calculates particle energy (in eV)
+         */
+    	double energy() const;
 
-	void setPos(const Vector& right);
+        /**
+         * \brief Calculated particle speed
+         */
+        double speed() const;
+
+    	void setPos(const Vector& right);
     	void setVel(const Vector& right);
     	void setSpec(const bool right);
 

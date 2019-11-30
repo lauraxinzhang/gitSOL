@@ -35,12 +35,15 @@
 #define MI 1.6726219E-27                 // ion mass, in kilogram
 #define QE 1.60217662E-19                // elementary charge, in coulomb
 #define EVTOJOULE 1.60217662E-19         // energy conversion factor
+#define EPSILON0 8.85E-12                // F/m SI units.
+
 
 // Numbers specific to LTX geometry
 #define BMAGAXIS  2000                   // mod(B) = 0.2 T = 2000 Gauss at magnetic axis, characteristic field strength
 #define NPERORBIT 20                     // steps per Lamor orbit, from Boris convergence test.
 #define RMAJOR    0.4  
 
+#define COULOMBLOG 19                    // coulomb logarithm for collisions
 
 /** Choose which interpolater to use throughout the class */
 // Use these two lines to compile with linear interpolations

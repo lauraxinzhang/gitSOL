@@ -37,7 +37,7 @@ Particle::Particle(const Vector& pos, const Vector& vel, int mass, int charge)
 		 vel_(vel.x(), vel.y(), vel.z()),
 		 lost_(false), generator_(int(time(NULL)))
 {
-
+	//TODO: spec flag for these particles??
 }
 
 Vector Particle::pos() const
@@ -67,8 +67,13 @@ double Particle::charge() const
 
 double Particle::energy() const
 {
-	double result = 0.5 * mass() * pow(vel().mod() , 2)/QE;
+	double result = 0.5 * mass() * pow(speed() , 2)/QE;
 	return result;
+}
+
+double Particle::speed() const
+{
+	return vel().mod();
 }
 
 void Particle::setPos(const Vector& right)
