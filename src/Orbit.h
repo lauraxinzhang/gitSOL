@@ -284,7 +284,8 @@ class Orbit
 		 * \note        params xB and nu_ab should be calculated via Orbit::xAndNu_ab
 		 */
 		Doub nu_para(Particle& part, Doub xB, Doub nu_ab);
-
+		
+		Doub collisions(Particle& part);
 		//--------------------------------------------------------------------------------------------
 		//---------------------------------- Start data outputting  ----------------------------------
 		//----------------------------------    "Orbit.write.cc"  ------------------------------------

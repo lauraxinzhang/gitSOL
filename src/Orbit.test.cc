@@ -50,6 +50,8 @@ void Orbit::test()
 
 	bool testPastukhov = false;
 	bool testEField    = false;
+	
+	bool testThermal = true;
 
 	// Interpolation Tests:
 	if (testInterp){
@@ -350,11 +352,41 @@ void Orbit::test()
 		}
 	}
 
+	if (testThermal) {
+		std::cerr << " - Testing thermal frequency calculations" << std::endl;
+		Orbit orbit;
+		orbit.setTemp(200, 200);
+		Vector pos(1, 0, 0);
+		Doub vv = sqrt(2 * 17000 * EVTOJOULE/MI); // a 17keV proton
+		Vector vel(0, vv, 0);
+		Particle testPart(pos, vel, 0); // a 17 keV proton as test particle
+
+		Particle electron, proton;
+		proton.setSpec(false);
+		
+		Doub xbe, xbp, nue, nup;
+		orbit.xAndNu_ab(testPart, electron, xbe, nue);
+		orbit.xAndNu_ab(testPart, proton,   xbp, nup);
+		Doub nu_se = orbit.nu_s(testPart, electron, xbe, nue);
+		Doub nu_sp = orbit.nu_s(testPart, proton,   xbp, nup);
+
+		Doub nu_se_exp = 103.478;
+		Doub nu_sp_exp = 15.4573;
+		bool result = ( (nu_se - nu_se_exp) < 0.001) && ( (nu_sp - nu_sp_exp) < 0.001);
+		if (result) {
+			std::cerr << " -- Passed" << std::endl;
+		} else {
+			std::cerr << "Something's wrong" << std::endl;
+			std::cerr << "nu_se should be: " << nu_se_exp << ", got: " << nu_se << std::endl;
+			std::cerr << "nu_sp should be: " << nu_sp_exp << ", got: " << nu_sp << std::endl;
+		}	
+	}
+
 }
 
 // A constructor for a simple field configuration
 Orbit::Orbit()
-	 :nw_(50), nh_(50), rdim_(2), zdim_(2), rleft_(1), zmid_(1)
+	 :nw_(50), nh_(50), rdim_(2), zdim_(2), rleft_(0), zmid_(0)
 	 // simag_(0),sibry_(0),dsi_(0)
 {
 	// Initialize all private data members

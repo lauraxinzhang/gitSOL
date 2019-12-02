@@ -195,7 +195,7 @@ Vector Vector::turn(Vector& axis, bool sign)
 	}
 }
 
-void Vector::damp(double nu_s, double dt)
+Vector Vector::damp(double nu_s, double dt)
 {
 	return (*this) * (1 - nu_s * dt);
 }

@@ -31,11 +31,11 @@
 #define CC 299792458.0                   // speed of light
 // #define QE 4.8E-10                    // electron charge, in Fr
 
-#define ME 9.1E-31                       // electron mass, in kilogram
+#define ME 9.10938356E-31                       // electron mass, in kilogram
 #define MI 1.6726219E-27                 // ion mass, in kilogram
 #define QE 1.60217662E-19                // elementary charge, in coulomb
 #define EVTOJOULE 1.60217662E-19         // energy conversion factor
-#define EPSILON0 8.85E-12                // F/m SI units.
+#define EPSILON0 8.8541878128E-12                // F/m SI units.
 
 
 // Numbers specific to LTX geometry

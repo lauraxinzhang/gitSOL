@@ -125,7 +125,7 @@ class Vector
 		 * \param dt   Time step of particle push.
 		 * \details    v_(t+1) = (1 - dt * nu_s) * v_t
 		 */
-		void damp(double nu_s, double dt);
+		Vector damp(double nu_s, double dt);
 
 		friend std::ostream& operator<<(std::ostream &os, const Vector& v);
 
