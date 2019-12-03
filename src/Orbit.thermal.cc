@@ -94,7 +94,7 @@ Doub Orbit::nu_para(Particle& part, Doub xB, Doub nu_ab)
 	return 2 * nu_ab * chandrasekharG(xB) / pow(part.speed(), 3);
 }
 
-Doub Orbit::collisions(Particle& part)
+Doub Orbit::collisions(Particle& part, Doub dt)
 {
 	Doub xe, nu_ae, xp, nu_ap;
 	Particle electron;
@@ -105,12 +105,16 @@ Doub Orbit::collisions(Particle& part)
 	xAndNu_ab(part, electron, xe, nu_ae);
 	xAndNu_ab(part, proton, xp, nu_ap);
 
+	Doub v = part.speed();
 	// slowing down on both species
-	Doub nu_sep = nu_s(part, electron, xe, nu_ae) + nu_s(part, proton, xp, nu_ap);
-	// perpendicular diffusion on protons
-	Doub nu_Dp = nu_D(part, xp, nu_ap);
-	Doub nu_parap = nu_para(part, xp, nu_ap);
+	Doub nu_slow = nu_s(part, electron, xe, nu_ae) + nu_s(part, proton, xp, nu_ap);
+	// perpendicular and parallel diffusion coeeficients on both electron and protons
+	Doub D_D = pow(v, 2) * 0.5 * (nu_D(part, xp, nu_ap) + nu_D(part, xe, nu_ae));
+	Doub D_para = pow(v, 2) * 0.5 * (nu_para(part, xp, nu_ap) + nu_para(part, xe, nu_ae));
 
-	// TODO: update part velocoty.
+	// update particle velocity: slowing down
+	Vector vslow = part.vel() * nu_slow * dt;
+	
+
 	return 0;
 }

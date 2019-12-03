@@ -15,6 +15,7 @@
 #include <cmath> 
 #include <list>
 #include <sstream>
+#include "Matrix.h"
 
 /**
   *
@@ -40,6 +41,10 @@ class Vector
     	 */
 		Vector(double x, double y, double z);
 
+		/**
+		 * \brief Copy constructor
+		 */
+		Vector(Vector& right);
 		/**
 		 * \brief Data getter for x component
 		 */
@@ -89,6 +94,12 @@ class Vector
 		 */
 		double dot(const Vector& right);
 		Vector cross(const Vector& right);
+
+		/**
+		 * \brief Vector tensor product
+		 */
+		Matrix tensor(const Vector& right);
+
 		double mod();
 		Vector normalize();
 

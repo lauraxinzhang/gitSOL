@@ -12,15 +12,21 @@
 
 Vector::Vector()
 		: x_(0), y_(0), z_(0)
-		{
-			//nothing to do here.
-		}
+{
+	//nothing to do here.
+}
 
 Vector::Vector(double x, double y, double z)
 		: x_(x), y_(y), z_(z)
-		{
-			// nothing to do here
-		}
+{
+	// nothing to do here
+}
+
+Vector::Vector(Vector& right)
+		: x_(right.x()), y_(right.y()), z_(right.z())
+{
+	// nothing to do here
+}
 
 double Vector::x() const
 {
@@ -120,6 +126,17 @@ Vector Vector::cross(const Vector& right)
 	result.setX(xx);
 	result.setY(yy);
 	result.setZ(zz);
+
+	return result;
+}
+
+Matrix Vector::tensor(const Vector& right)
+{
+	Vector rowOne = right * x();
+	Vector rowTwo = right * y();
+	Vector rowThree = right * z();
+
+	Matrix result(rowOne, rowTwo, rowThree);
 
 	return result;
 }
