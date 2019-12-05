@@ -94,7 +94,7 @@ Doub Orbit::nu_para(Particle& part, Doub xB, Doub nu_ab)
 	return 2 * nu_ab * chandrasekharG(xB) / pow(part.speed(), 3);
 }
 
-Doub Orbit::collisions(Particle& part, Doub dt)
+void Orbit::collisions(Particle& part, Doub dt, std::default_random_engine& generator)
 {
 	Doub xe, nu_ae, xp, nu_ap;
 	Particle electron;
@@ -115,6 +115,22 @@ Doub Orbit::collisions(Particle& part, Doub dt)
 	// update particle velocity: slowing down
 	Vector vslow = part.vel() * nu_slow * dt;
 	
+	Matrix identity;
+	identity.diagonal(1, 1, 1);
 
-	return 0;
+	Matrix parallel = pow(v, -2) * v.vel().tensor(v.vel());
+	Matrix perp     = identity - parallel;
+	Matrix diffusion = parallel * sqrt(D_para) + perp * sqrt(D_D);
+
+	std::normal_distribution<double> distribution(0, sqrt(dt)); // generate a Gaussian distributed velocity
+    double wx = distribution(generator); // generate 3 normal distributed velocities.
+    double wy =  distribution(generator);
+    double wz = distribution(generator);
+    Vector wiener(wx, wy, wz);
+
+    Vector diffused = diffusion.dot(wiener);
+
+    Vector updated = part.vel() - vslow + diffused;
+	part.setVel(updated);
+	return;
 }

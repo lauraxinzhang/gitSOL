@@ -29,6 +29,15 @@ Matrix::Matrix(Matrix& right)
 	// nothing to do here
 }
 
+Matrix Matrix::diagonal(double top, double mid, double bot)
+{
+	Vector vtop(top, 0,   0);
+	Vector vmid(0,   mid, 0);
+	Vector vbot(0,   0,   bot);
+	Matrix result(vtop, vmid, vbot);
+	return result;
+}
+
 Vector Matrix::getRow(int index) const
 {
 	switch(index) {

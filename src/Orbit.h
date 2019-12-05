@@ -32,6 +32,7 @@
 // Programmer class includes
 #include "Constants.h"
 #include "Vector.h"
+#include "Matrix.h"
 #include "Particle.h"
 #include "Struct.h"
 
@@ -285,7 +286,7 @@ class Orbit
 		 */
 		Doub nu_para(Particle& part, Doub xB, Doub nu_ab);
 		
-		Doub collisions(Particle& part);
+		void collisions(Particle& part, Doub dt, std::default_random_engine& generator);
 		//--------------------------------------------------------------------------------------------
 		//---------------------------------- Start data outputting  ----------------------------------
 		//----------------------------------    "Orbit.write.cc"  ------------------------------------

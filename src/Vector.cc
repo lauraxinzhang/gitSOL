@@ -194,8 +194,8 @@ void Vector::cyl2Cart(const Vector& pos, Vector& vCart)
 
 void Vector::cart2Cyl(const Vector& pos, Vector& vCyl)
 {
+	// TODO: this is NOT implemented yet
 	vCyl.setZ(z());
-
 	return;
 }
 
