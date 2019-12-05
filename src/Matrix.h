@@ -8,14 +8,16 @@
  *          vectors.
  */
 
-#ifndef VECTOR_H_INCLUDED
-#define VECTOR_H_INCLUDED 1
+#ifndef MATRIX_H_INCLUDED
+#define MATRIX_H_INCLUDED 1
 
 #include <iostream>
 #include <iomanip>
 #include <cmath> 
 #include <list>
 #include <sstream>
+
+class Vector;
 
 class Matrix
 {
@@ -35,7 +37,7 @@ class Matrix
 		 * \brief Copy constructor
 		 * \param right The matrix to copy from
 		 */
-		Matrix(Matrix& right);
+//		Matrix(Matrix& right);
 
 		/**
 		 * \brief Makes an identity matrix. 
@@ -62,9 +64,11 @@ class Matrix
 		Matrix operator*(const double mult);
 
 	private:
-		Vector rowOne_;
-		Vector rowTwo_;
-		Vector rowThree_;
+		Vector* rowOne_;
+		Vector* rowTwo_;
+		Vector* rowThree_;
 
 
-}
+};
+
+#endif

@@ -118,7 +118,8 @@ void Orbit::collisions(Particle& part, Doub dt, std::default_random_engine& gene
 	Matrix identity;
 	identity.diagonal(1, 1, 1);
 
-	Matrix parallel = pow(v, -2) * v.vel().tensor(v.vel());
+	Vector vel = part.vel();
+	Matrix parallel = vel.tensor(vel) * pow(v, -2);
 	Matrix perp     = identity - parallel;
 	Matrix diffusion = parallel * sqrt(D_para) + perp * sqrt(D_D);
 

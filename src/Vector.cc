@@ -9,6 +9,7 @@
  */
 
 #include "Vector.h"
+#include "Matrix.h"
 
 Vector::Vector()
 		: x_(0), y_(0), z_(0)
@@ -22,11 +23,13 @@ Vector::Vector(double x, double y, double z)
 	// nothing to do here
 }
 
+/*
 Vector::Vector(Vector& right)
 		: x_(right.x()), y_(right.y()), z_(right.z())
 {
 	// nothing to do here
 }
+*/
 
 double Vector::x() const
 {
@@ -130,7 +133,7 @@ Vector Vector::cross(const Vector& right)
 	return result;
 }
 
-Matrix Vector::tensor(const Vector& right)
+Matrix Vector::tensor(Vector& right)
 {
 	Vector rowOne = right * x();
 	Vector rowTwo = right * y();
