@@ -387,6 +387,56 @@ int main(int argc, const char** argv)
         //pusher.gridBurst(1.8, 0.116, 5000, 1);
         //pusher.conicBurst(1.8, 0.116, 0, 5000, 8, 1);
     }
+    else if (controller == std::string("-mirrorsingle")){
+        double Ti(100), Te(100), Buniform(0.3), R(3), mult(0), L(1), nx(101);//, tmax;
+        double energy(100);
+        int maxiter(1000000);
+
+        Mirror mirror(Ti, Te, Buniform, R, mult, L, 101); // setting up a straight box
+        Pusher<Mirror> pusher(mirror); // construct a Pusher object
+
+		std:vector<int> species = {0, 1};
+		for (int i = 0; i<2; i++){
+			int spec = species.at(i);
+
+			Doub mass = MI * (1 - spec) + ME * spec; // logical statement, choosing between ion and electron mass.
+	    	Doub vbar = sqrt(energy  *  EVTOJOULE / mass); // thermal velocity, <v^2> in distribution, sigma.
+	    
+	    	Doub Btypical = BMAGAXIS; // magnetic field on the order of BMAGAXIS.
+	    	Doub fLamor = ( 1520 * (1 - spec) + 2.8E6 * spec ) * Btypical; // another logical, constants from NRL p28
+	    	Doub TLamor = 1/fLamor;
+	    	Doub dt = TLamor / NPERORBIT;
+
+	    	Vector posi(0, 0, 0);
+	    	Vector veli(vbar, vbar, 0);
+
+	    	Particle part(posi, veli, spec);
+
+	    	std::string fname = "coord_trap_" + std::to_string(species).substr(0, 1) + ".out";
+	    	std::ofstream coord;
+	    	coord.open(fname);
+
+	    	pusher.pushSingle(part, dt, maxiter, 1, coord);
+	    	coord.close();
+
+	    	veli = Vector(vbar, 0.5*vbar, 0);
+	    	part.setpos(posi);
+	    	part.setpos(veli);
+
+	    	std::string fname = "coord_pass_" + std::to_string(species).substr(0, 1) + ".out";
+	    	std::ofstream coord;
+	    	coord.open(fname);
+
+	    	pusher.pushSingle(part, dt, maxiter, 1, coord);
+	    	coord.close();
+		}
+
+		
+
+
+
+
+    }
     else if (controller == std::string("-passing")) {
         std::cerr << "calculating passing particle potential" << std::endl;
         orbit.setPassing(1, 1, 1); // set passing for Ti/Te = 0.2 TODO take command line
