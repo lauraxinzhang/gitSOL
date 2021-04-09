@@ -148,10 +148,12 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
         Vector BNow = (*geo_).getB(posNow);
         Vector ENow = (*geo_).getE(posNow);
         if (write && (i % 2 == 0)){
-            coord << part.pos() << std::endl;
+            coord << part.pos();
             double Ex = pow(part.vel().x(), 2) * 0.5 * part.mass()/QE;
-			double Eperp = part.energy() - Ex;    
-			std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
+	    double Eperp = part.energy() - Ex;    
+            double mu = Eperp / (BNow.mod());
+//	    std::cout << Ex << "," << Eperp << "," << part.energy() << std::endl;
+	    coord <<"," << Ex << "," << Eperp << "," << part.energy() << "," << mu << std::endl;
         }
             part.move(ENow, BNow, dt);
     	    //int lastCrossed = 26;// start at the last sightline (first to cross)
@@ -162,8 +164,8 @@ Vector Pusher<T>::pushSingle(Particle& part, double dt, int iter, bool write, st
                 break;
             } else {
             // Next line for Mirror only
-                Vector position = part.pos();
-                (*geo_).addToBin(part);
+              //  Vector position = part.pos();
+            //    (*geo_).addToBin(part);
             }
             if (write){ // always collect for density calculations
             // Next line for NBI only

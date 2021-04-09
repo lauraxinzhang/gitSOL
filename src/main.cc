@@ -412,7 +412,8 @@ int main(int argc, const char** argv)
 
 	    	Particle part(posi, veli, spec);
 
-	    	std::string fname = "coord_trap_" + std::to_string(species).substr(0, 1) + ".out";
+		std::string outdir = "./output_mirror_21/";
+	    	std::string fname = outdir + "coord_trap_" + std::to_string(spec).substr(0, 1) + ".out";
 	    	std::ofstream coord;
 	    	coord.open(fname);
 
@@ -420,11 +421,10 @@ int main(int argc, const char** argv)
 	    	coord.close();
 
 	    	veli = Vector(vbar, 0.5*vbar, 0);
-	    	part.setpos(posi);
-	    	part.setpos(veli);
+	    	part.setPos(posi);
+	    	part.setVel(veli);
 
-	    	std::string fname = "coord_pass_" + std::to_string(species).substr(0, 1) + ".out";
-	    	std::ofstream coord;
+	    	fname = outdir + "coord_pass_" + std::to_string(spec).substr(0, 1) + ".out";
 	    	coord.open(fname);
 
 	    	pusher.pushSingle(part, dt, maxiter, 1, coord);
